@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Localization;
@@ -74,6 +75,7 @@ namespace Nop.Data.Tests.Blogs
                 (
                     new BlogComment
                     {
+                        IsApproved = true,
                         CreatedOnUtc = new DateTime(2010, 01, 03),
                         Customer = GetTestCustomer()
                     }
@@ -84,6 +86,7 @@ namespace Nop.Data.Tests.Blogs
 
             fromDb.BlogComments.ShouldNotBeNull();
             (fromDb.BlogComments.Count == 1).ShouldBeTrue();
+            fromDb.BlogComments.First().IsApproved.ShouldEqual(true);
         }
 
         protected Customer GetTestCustomer()

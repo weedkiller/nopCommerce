@@ -753,6 +753,7 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.NotifyAboutNewBlogComments_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.NumberOfTags_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShowHeaderRssUrl_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.BlogCommentsMustBeApproved_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
                 cfg.CreateMap<BlogSettingsModel, BlogSettings>();
                 cfg.CreateMap<VendorSettings, VendorSettingsModel>()

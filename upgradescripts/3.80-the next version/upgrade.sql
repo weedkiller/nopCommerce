@@ -821,6 +821,21 @@ set @resources='
   <LocaleResource Name="News.Comments.SeeAfterApproving">
     <Value>News comment is successfully added. You will see it after approving by a store administrator.</Value>
   </LocaleResource>
+  <LocaleResource Name="ActivityLog.EditBlogComment">
+    <Value>Edited a blog comment (ID = {0})</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Blog.BlogCommentsMustBeApproved">
+    <Value>Blog comments must be approved</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Blog.BlogCommentsMustBeApproved.Hint">
+    <Value>Check if blog comments must be approved by administrator.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.Comments.Fields.IsApproved">
+    <Value>Is approved</Value>
+  </LocaleResource>
+  <LocaleResource Name="Blog.Comments.SeeAfterApproving">
+    <Value>Blog comment is successfully added. You will see it after approving by a store administrator.</Value>
+  </LocaleResource>
 </Language>
 '
 
@@ -2456,5 +2471,37 @@ IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [name] = N'newssettings.newscomment
 BEGIN
 	INSERT [Setting] ([Name], [Value], [StoreId])
 	VALUES (N'newssettings.newscommentsmustbeapproved', N'False', 0)
+END
+GO
+
+--new column
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=object_id('[BlogComment]') and NAME='IsApproved')
+BEGIN
+	ALTER TABLE [BlogComment]
+	ADD [IsApproved] bit NULL
+END
+GO
+
+UPDATE [BlogComment]
+SET [IsApproved] = 1
+WHERE [IsApproved] IS NULL
+GO
+
+ALTER TABLE [BlogComment] ALTER COLUMN [IsApproved] bit NOT NULL
+GO
+
+--new activity type
+IF NOT EXISTS (SELECT 1 FROM [ActivityLogType] WHERE [SystemKeyword] = N'EditBlogComment')
+BEGIN
+	INSERT [ActivityLogType] ([SystemKeyword], [Name], [Enabled])
+	VALUES (N'EditBlogComment', N'Edited a blog comment', N'true')
+END
+GO
+
+--new setting
+IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [name] = N'blogsettings.blogcommentsmustbeapproved')
+BEGIN
+	INSERT [Setting] ([Name], [Value], [StoreId])
+	VALUES (N'blogsettings.blogcommentsmustbeapproved', N'False', 0)
 END
 GO

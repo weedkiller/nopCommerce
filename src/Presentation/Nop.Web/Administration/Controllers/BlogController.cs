@@ -351,11 +351,32 @@ namespace Nop.Admin.Controllers
                     commentModel.CustomerInfo = customer.IsRegistered() ? customer.Email : _localizationService.GetResource("Admin.Customers.Guest");
                     commentModel.CreatedOn = _dateTimeHelper.ConvertToUserTime(blogComment.CreatedOnUtc, DateTimeKind.Utc);
                     commentModel.Comment = Core.Html.HtmlHelper.FormatText(blogComment.CommentText, false, true, false, false, false, false);
+                    commentModel.IsApproved = blogComment.IsApproved;
+
                     return commentModel;
                 }),
                 Total = comments.Count,
             };
             return Json(gridModel);
+        }
+
+        [HttpPost]
+        public ActionResult CommentUpdate(BlogCommentModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
+                return AccessDeniedView();
+
+            var comment = _blogService.GetBlogCommentById(model.Id);
+            if (comment == null)
+                throw new ArgumentException("No comment found with the specified id");
+
+            comment.IsApproved = model.IsApproved;
+            _blogService.UpdateBlogPost(comment.BlogPost);
+
+            //activity log
+            _customerActivityService.InsertActivity("EditBlogComment", _localizationService.GetResource("ActivityLog.EditBlogComment"), model.Id);
+
+            return new NullJsonResult();
         }
 
         public ActionResult CommentDelete(int id)

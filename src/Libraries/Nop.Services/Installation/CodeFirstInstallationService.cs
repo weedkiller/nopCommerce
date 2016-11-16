@@ -6159,6 +6159,7 @@ namespace Nop.Services.Installation
                 NotifyAboutNewBlogComments = false,
                 NumberOfTags = 15,
                 ShowHeaderRssUrl = false,
+                BlogCommentsMustBeApproved = false
             });
             settingService.SaveSetting(new NewsSettings
             {
@@ -10740,6 +10741,7 @@ namespace Nop.Services.Installation
                     BlogPostId = blogPost.Id,
                     CustomerId = defaultCustomer.Id,
                     CommentText = "This is a sample comment for this blog post",
+                    IsApproved = true,
                     CreatedOnUtc = DateTime.UtcNow
                 });
                 //update totals
