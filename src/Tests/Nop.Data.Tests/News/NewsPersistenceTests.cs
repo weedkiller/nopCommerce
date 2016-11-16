@@ -78,6 +78,7 @@ namespace Nop.Data.Tests.News
                     new NewsComment
                     {
                         CommentText = "Comment text 1",
+                        IsApproved = false,
                         CreatedOnUtc = new DateTime(2010, 01, 03),
                         Customer = GetTestCustomer()
                     }
@@ -89,6 +90,7 @@ namespace Nop.Data.Tests.News
             fromDb.NewsComments.ShouldNotBeNull();
             (fromDb.NewsComments.Count == 1).ShouldBeTrue();
             fromDb.NewsComments.First().CommentText.ShouldEqual("Comment text 1");
+            fromDb.NewsComments.First().IsApproved.ShouldEqual(false);
         }
 
         protected Customer GetTestCustomer()

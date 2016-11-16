@@ -704,6 +704,7 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.MainPageNewsCount_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.NewsArchivePageSize_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShowHeaderRssUrl_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.NewsCommentsMustBeApproved_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
                 cfg.CreateMap<NewsSettingsModel, NewsSettings>();
                 cfg.CreateMap<ForumSettings, ForumSettingsModel>()

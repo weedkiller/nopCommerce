@@ -6169,6 +6169,7 @@ namespace Nop.Services.Installation
                 MainPageNewsCount = 3,
                 NewsArchivePageSize = 10,
                 ShowHeaderRssUrl = false,
+                NewsCommentsMustBeApproved = false
             });
 
             settingService.SaveSetting(new ForumSettings
@@ -10812,6 +10813,7 @@ namespace Nop.Services.Installation
                     CustomerId = defaultCustomer.Id,
                     CommentTitle = "Sample comment title",
                     CommentText = "This is a sample comment...",
+                    IsApproved = true,
                     CreatedOnUtc = DateTime.UtcNow
                 });
                 //update totals

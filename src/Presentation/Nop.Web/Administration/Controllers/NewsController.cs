@@ -362,12 +362,33 @@ namespace Nop.Admin.Controllers
                     commentModel.CreatedOn = _dateTimeHelper.ConvertToUserTime(newsComment.CreatedOnUtc, DateTimeKind.Utc);
                     commentModel.CommentTitle = newsComment.CommentTitle;
                     commentModel.CommentText = Core.Html.HtmlHelper.FormatText(newsComment.CommentText, false, true, false, false, false, false);
+                    commentModel.IsApproved = newsComment.IsApproved;
+
                     return commentModel;
                 }),
                 Total = comments.Count,
             };
 
             return Json(gridModel);
+        }
+
+        [HttpPost]
+        public ActionResult CommentUpdate(NewsCommentModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageNews))
+                return AccessDeniedView();
+
+            var comment = _newsService.GetNewsCommentById(model.Id);
+            if (comment == null)
+                throw new ArgumentException("No comment found with the specified id");
+
+            comment.IsApproved = model.IsApproved;
+            _newsService.UpdateNews(comment.NewsItem);
+
+            //activity log
+            _customerActivityService.InsertActivity("EditNewsComment", _localizationService.GetResource("ActivityLog.EditNewsComment"), model.Id);
+
+            return new NullJsonResult();
         }
 
         [HttpPost]

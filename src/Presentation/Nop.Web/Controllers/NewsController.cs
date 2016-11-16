@@ -122,7 +122,8 @@ namespace Nop.Web.Controllers
             model.AddNewComment.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnNewsCommentPage;
             if (prepareComments)
             {
-                var newsComments = newsItem.NewsComments.OrderBy(pr => pr.CreatedOnUtc);
+                var newsComments = newsItem.NewsComments.Where(comment => comment.IsApproved).OrderBy(comment => comment.CreatedOnUtc);
+
                 foreach (var nc in newsComments)
                 {
                     var commentModel = new NewsCommentModel
@@ -290,6 +291,7 @@ namespace Nop.Web.Controllers
                     CustomerId = _workContext.CurrentCustomer.Id,
                     CommentTitle = model.AddNewComment.CommentTitle,
                     CommentText = model.AddNewComment.CommentText,
+                    IsApproved = !_newsSettings.NewsCommentsMustBeApproved,
                     CreatedOnUtc = DateTime.UtcNow,
                 };
                 newsItem.NewsComments.Add(comment);
@@ -307,7 +309,10 @@ namespace Nop.Web.Controllers
 
                 //The text boxes should be cleared after a comment has been posted
                 //That' why we reload the page
-                TempData["nop.news.addcomment.result"] = _localizationService.GetResource("News.Comments.SuccessfullyAdded");
+                TempData["nop.news.addcomment.result"] = comment.IsApproved 
+                    ? _localizationService.GetResource("News.Comments.SuccessfullyAdded")
+                    : _localizationService.GetResource("News.Comments.SeeAfterApproving");
+
                 return RedirectToRoute("NewsItem", new { SeName = newsItem.GetSeName(newsItem.LanguageId, ensureTwoPublishedLanguages: false) });
             }
 

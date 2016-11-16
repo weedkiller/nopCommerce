@@ -806,6 +806,21 @@ set @resources='
   <LocaleResource Name="Admin.Catalog.Products.TierPrices.Fields.Store.Hint">
     <Value>Option to limit this tier price to a certain store. If you have multiple stores, choose one from the list.</Value>
   </LocaleResource>
+  <LocaleResource Name="ActivityLog.EditNewsComment">
+    <Value>Edited a news comment (ID = {0})</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.News.NewsCommentsMustBeApproved">
+    <Value>News comments must be approved</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.News.NewsCommentsMustBeApproved.Hint">
+    <Value>Check if news comments must be approved by administrator.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.News.Comments.Fields.IsApproved">
+    <Value>Is approved</Value>
+  </LocaleResource>
+  <LocaleResource Name="News.Comments.SeeAfterApproving">
+    <Value>News comment is successfully added. You will see it after approving by a store administrator.</Value>
+  </LocaleResource>
 </Language>
 '
 
@@ -2409,5 +2424,37 @@ BEGIN
 		[pi].IndexId
 	
 	DROP TABLE #PageIndex
+END
+GO
+
+--new column
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=object_id('[NewsComment]') and NAME='IsApproved')
+BEGIN
+	ALTER TABLE [NewsComment]
+	ADD [IsApproved] bit NULL
+END
+GO
+
+UPDATE [NewsComment]
+SET [IsApproved] = 1
+WHERE [IsApproved] IS NULL
+GO
+
+ALTER TABLE [NewsComment] ALTER COLUMN [IsApproved] bit NOT NULL
+GO
+
+--new activity type
+IF NOT EXISTS (SELECT 1 FROM [ActivityLogType] WHERE [SystemKeyword] = N'EditNewsComment')
+BEGIN
+	INSERT [ActivityLogType] ([SystemKeyword], [Name], [Enabled])
+	VALUES (N'EditNewsComment', N'Edited a news comment', N'true')
+END
+GO
+
+--new setting
+IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [name] = N'newssettings.newscommentsmustbeapproved')
+BEGIN
+	INSERT [Setting] ([Name], [Value], [StoreId])
+	VALUES (N'newssettings.newscommentsmustbeapproved', N'False', 0)
 END
 GO

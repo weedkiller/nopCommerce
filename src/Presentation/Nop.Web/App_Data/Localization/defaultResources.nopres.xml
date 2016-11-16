@@ -917,7 +917,10 @@
   </LocaleResource>
   <LocaleResource Name="ActivityLog.EditNews">
    <Value>Edited a news (ID = {0})</Value>
-  </LocaleResource>  
+  </LocaleResource>
+  <LocaleResource Name="ActivityLog.EditNewsComment">
+    <Value>Edited a news comment (ID = {0})</Value>
+  </LocaleResource>
   <LocaleResource Name="ActivityLog.EditOrder">
     <Value>Edited an order (ID = {0}). See order notes for details</Value>
   </LocaleResource>
@@ -6348,6 +6351,12 @@
   <LocaleResource Name="Admin.Configuration.Settings.News.NewsArchivePageSize.Hint">
     <Value>A number of news displayed on one page.</Value>
   </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.News.NewsCommentsMustBeApproved">
+    <Value>News comments must be approved</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.News.NewsCommentsMustBeApproved.Hint">
+    <Value>Check if news comments must be approved by administrator.</Value>
+  </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.News.NotifyAboutNewNewsComments">
     <Value>Notify about new news comments</Value>
   </LocaleResource>
@@ -8141,6 +8150,9 @@
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.News.Comments.Fields.Customer">
     <Value>Customer</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.News.Comments.Fields.IsApproved">
+    <Value>Is approved</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.News.Comments.Fields.NewsItem">
     <Value>News item</Value>
@@ -13820,6 +13832,9 @@
   </LocaleResource>
   <LocaleResource Name="News.Comments.OnlyRegisteredUsersLeaveComments">
     <Value>Only registered users can leave comments.</Value>
+  </LocaleResource>
+  <LocaleResource Name="News.Comments.SeeAfterApproving">
+    <Value>News comment is successfully added. You will see it after approving by a store administrator.</Value>
   </LocaleResource>
   <LocaleResource Name="News.Comments.SubmitButton">
     <Value>New comment</Value>
