@@ -2505,3 +2505,17 @@ BEGIN
 	VALUES (N'blogsettings.blogcommentsmustbeapproved', N'False', 0)
 END
 GO
+
+--drop column
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id=object_id('[News]') and NAME='CommentCount')
+BEGIN
+	ALTER TABLE [News] DROP COLUMN [CommentCount]
+END
+GO
+
+--drop column
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id=object_id('[BlogPost]') and NAME='CommentCount')
+BEGIN
+	ALTER TABLE [BlogPost] DROP COLUMN [CommentCount]
+END
+GO

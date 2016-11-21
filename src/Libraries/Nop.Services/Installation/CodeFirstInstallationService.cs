@@ -10744,9 +10744,6 @@ namespace Nop.Services.Installation
                     IsApproved = true,
                     CreatedOnUtc = DateTime.UtcNow
                 });
-                //update totals
-                blogPost.CommentCount = blogPost.BlogComments.Count;
-
             }
             _blogPostRepository.Update(blogPosts);
         }
@@ -10818,9 +10815,6 @@ namespace Nop.Services.Installation
                     IsApproved = true,
                     CreatedOnUtc = DateTime.UtcNow
                 });
-                //update totals
-                newsItem.CommentCount = newsItem.NewsComments.Count;
-
             }
             _newsItemRepository.Update(news);
         }

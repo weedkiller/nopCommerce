@@ -160,7 +160,9 @@ namespace Nop.Admin.Controllers
                         m.EndDate = _dateTimeHelper.ConvertToUserTime(x.EndDateUtc.Value, DateTimeKind.Utc);
                     m.CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc);
                     m.LanguageName = x.Language.Name;
-                    m.Comments = x.CommentCount;
+                    m.ApprovedComments = _blogService.GetBlogCommentsCount(x, true);
+                    m.NotApprovedComments = _blogService.GetBlogCommentsCount(x, false);
+
                     return m;
                 }),
                 Total = blogPosts.TotalCount
@@ -393,10 +395,6 @@ namespace Nop.Admin.Controllers
 
             //activity log
             _customerActivityService.InsertActivity("DeleteBlogPostComment", _localizationService.GetResource("ActivityLog.DeleteBlogPostComment"), blogPost.Id);
-            
-            //update totals
-            blogPost.CommentCount = blogPost.BlogComments.Count;
-            _blogService.UpdateBlogPost(blogPost);
 
             return new NullJsonResult();
         }
@@ -417,12 +415,6 @@ namespace Nop.Admin.Controllers
                 foreach (var blogComment in comments)
                 {
                     _customerActivityService.InsertActivity("DeleteBlogPostComment", _localizationService.GetResource("ActivityLog.DeleteBlogPostComment"), blogComment.Id);
-                }
-                //update totals
-                foreach (var blogPost in blogPosts)
-                {
-                    blogPost.CommentCount = blogPost.BlogComments.Count;
-                    _blogService.UpdateBlogPost(blogPost);
                 }
             }
 

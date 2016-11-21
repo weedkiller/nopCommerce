@@ -169,7 +169,9 @@ namespace Nop.Admin.Controllers
                         m.EndDate = _dateTimeHelper.ConvertToUserTime(x.EndDateUtc.Value, DateTimeKind.Utc);
                     m.CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc);
                     m.LanguageName = x.Language.Name;
-                    m.Comments = x.CommentCount;
+                    m.ApprovedComments = _newsService.GetNewsCommentsCount(x, true);
+                    m.NotApprovedComments = _newsService.GetNewsCommentsCount(x, false);
+
                     return m;
                 }),
                 Total = news.TotalCount
@@ -407,10 +409,6 @@ namespace Nop.Admin.Controllers
             //activity log
             _customerActivityService.InsertActivity("DeleteNewsComment", _localizationService.GetResource("ActivityLog.DeleteNewsComment"), id);
 
-            //update totals
-            newsItem.CommentCount = newsItem.NewsComments.Count;
-            _newsService.UpdateNews(newsItem);
-
             return new NullJsonResult();
         }
         
@@ -431,13 +429,6 @@ namespace Nop.Admin.Controllers
                 foreach (var newsComment in comments)
                 {
                     _customerActivityService.InsertActivity("DeleteNewsComment", _localizationService.GetResource("ActivityLog.DeleteNewsComment"), newsComment.Id);
-                }
-
-                //update totals
-                foreach (var newsItem in news)
-                {
-                    newsItem.CommentCount = newsItem.NewsComments.Count;
-                    _newsService.UpdateNews(newsItem);
                 }
             }
 

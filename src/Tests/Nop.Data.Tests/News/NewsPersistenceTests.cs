@@ -23,7 +23,6 @@ namespace Nop.Data.Tests.News
                 StartDateUtc = new DateTime(2010, 01, 01),
                 EndDateUtc = new DateTime(2010, 01, 02),
                 AllowComments = true,
-                CommentCount = 1,
                 LimitedToStores = true,
                 CreatedOnUtc = new DateTime(2010, 01, 03),
                 MetaTitle = "MetaTitle 1",
@@ -45,7 +44,6 @@ namespace Nop.Data.Tests.News
             fromDb.StartDateUtc.ShouldEqual(new DateTime(2010, 01, 01));
             fromDb.EndDateUtc.ShouldEqual(new DateTime(2010, 01, 02));
             fromDb.AllowComments.ShouldEqual(true);
-            fromDb.CommentCount.ShouldEqual(1);
             fromDb.LimitedToStores.ShouldEqual(true);
             fromDb.CreatedOnUtc.ShouldEqual(new DateTime(2010, 01, 03));
             fromDb.MetaTitle.ShouldEqual("MetaTitle 1");

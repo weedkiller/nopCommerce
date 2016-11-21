@@ -118,7 +118,7 @@ namespace Nop.Web.Controllers
             model.Full = newsItem.Full;
             model.AllowComments = newsItem.AllowComments;
             model.CreatedOn = _dateTimeHelper.ConvertToUserTime(newsItem.StartDateUtc ?? newsItem.CreatedOnUtc, DateTimeKind.Utc);
-            model.NumberOfComments = newsItem.CommentCount;
+            model.NumberOfComments = _newsService.GetNewsCommentsCount(newsItem, true);
             model.AddNewComment.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnNewsCommentPage;
             if (prepareComments)
             {
@@ -295,10 +295,6 @@ namespace Nop.Web.Controllers
                     CreatedOnUtc = DateTime.UtcNow,
                 };
                 newsItem.NewsComments.Add(comment);
-                //update totals
-                newsItem.CommentCount = newsItem.NewsComments.Count;
-                _newsService.UpdateNews(newsItem);
-
 
                 //notify a store owner;
                 if (_newsSettings.NotifyAboutNewNewsComments)

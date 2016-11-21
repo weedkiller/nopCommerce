@@ -20,7 +20,6 @@ namespace Nop.Data.Tests.Blogs
                 Body = "Body 1",
                 BodyOverview = "BodyOverview 1",
                 AllowComments = true,
-                CommentCount = 1,
                 Tags = "Tags 1",
                 StartDateUtc = new DateTime(2010, 01, 01),
                 EndDateUtc = new DateTime(2010, 01, 02),
@@ -42,7 +41,6 @@ namespace Nop.Data.Tests.Blogs
             fromDb.Body.ShouldEqual("Body 1");
             fromDb.BodyOverview.ShouldEqual("BodyOverview 1");
             fromDb.AllowComments.ShouldEqual(true);
-            fromDb.CommentCount.ShouldEqual(1);
             fromDb.Tags.ShouldEqual("Tags 1");
             fromDb.StartDateUtc.ShouldEqual(new DateTime(2010, 01, 01));
             fromDb.EndDateUtc.ShouldEqual(new DateTime(2010, 01, 02));
