@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml;
 using Nop.Core;
+using Nop.Core.Caching;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Infrastructure;
 using Nop.Services.Common;
+using Nop.Services.Customers.Cache;
 using Nop.Services.Localization;
 
 namespace Nop.Services.Customers
@@ -21,13 +23,13 @@ namespace Nop.Services.Customers
         public static string GetFullName(this Customer customer)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
             var firstName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FirstName);
             var lastName = customer.GetAttribute<string>(SystemCustomerAttributeNames.LastName);
 
             string fullName = "";
             if (!String.IsNullOrWhiteSpace(firstName) && !String.IsNullOrWhiteSpace(lastName))
-                fullName = string.Format("{0} {1}", firstName, lastName);
+                fullName = $"{firstName} {lastName}";
             else
             {
                 if (!String.IsNullOrWhiteSpace(firstName))
@@ -90,7 +92,7 @@ namespace Nop.Services.Customers
         public static string[] ParseAppliedDiscountCouponCodes(this Customer customer)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             var genericAttributeService = EngineContext.Current.Resolve<IGenericAttributeService>();
             var existingCouponCodes = customer.GetAttribute<string>(SystemCustomerAttributeNames.DiscountCouponCode,
@@ -130,7 +132,7 @@ namespace Nop.Services.Customers
         public static void ApplyDiscountCouponCode(this Customer customer, string couponCode)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             var genericAttributeService = EngineContext.Current.Resolve<IGenericAttributeService>();
             string result = string.Empty;
@@ -196,7 +198,7 @@ namespace Nop.Services.Customers
         public static void RemoveDiscountCouponCode(this Customer customer, string couponCode)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             //get applied coupon codes
             var existingCouponCodes = customer.ParseAppliedDiscountCouponCodes();
@@ -220,7 +222,7 @@ namespace Nop.Services.Customers
         public static string[] ParseAppliedGiftCardCouponCodes(this Customer customer)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             var genericAttributeService = EngineContext.Current.Resolve<IGenericAttributeService>();
             var existingCouponCodes = customer.GetAttribute<string>(SystemCustomerAttributeNames.GiftCardCouponCodes,
@@ -260,7 +262,7 @@ namespace Nop.Services.Customers
         public static void ApplyGiftCardCouponCode(this Customer customer, string couponCode)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             var genericAttributeService = EngineContext.Current.Resolve<IGenericAttributeService>();
             string result = string.Empty;
@@ -326,7 +328,7 @@ namespace Nop.Services.Customers
         public static void RemoveGiftCardCouponCode(this Customer customer, string couponCode)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             //get applied coupon codes
             var existingCouponCodes = customer.ParseAppliedGiftCardCouponCodes();
@@ -350,7 +352,7 @@ namespace Nop.Services.Customers
         public static bool IsPasswordRecoveryTokenValid(this Customer customer, string token)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             var cPrt = customer.GetAttribute<string>(SystemCustomerAttributeNames.PasswordRecoveryToken);
             if (String.IsNullOrEmpty(cPrt))
@@ -370,10 +372,10 @@ namespace Nop.Services.Customers
         public static bool IsPasswordRecoveryLinkExpired(this Customer customer, CustomerSettings customerSettings)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             if (customerSettings == null)
-                throw new ArgumentNullException("customerSettings");
+                throw new ArgumentNullException(nameof(customerSettings));
 
             if (customerSettings.PasswordRecoveryLinkDaysValid == 0)
                 return false;
@@ -398,7 +400,7 @@ namespace Nop.Services.Customers
         public static int[] GetCustomerRoleIds(this Customer customer, bool showHidden = false)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             var customerRolesIds = customer.CustomerRoles
                .Where(cr => showHidden || cr.Active)
@@ -406,6 +408,47 @@ namespace Nop.Services.Customers
                .ToArray();
 
             return customerRolesIds;
+        }
+
+        /// <summary>
+        /// Check whether customer password is expired 
+        /// </summary>
+        /// <param name="customer">Customer</param>
+        /// <returns>True if password is expired; otherwise false</returns>
+        public static bool PasswordIsExpired(this Customer customer)
+        {
+            if (customer == null)
+                throw new ArgumentNullException(nameof(customer));
+
+            //the guests don't have a password
+            if (customer.IsGuest())
+                return false;
+
+            //password lifetime is disabled for user
+            if (!customer.CustomerRoles.Any(role => role.Active && role.EnablePasswordLifetime))
+                return false;
+
+            //setting disabled for all
+            var customerSettings = EngineContext.Current.Resolve<CustomerSettings>();
+            if (customerSettings.PasswordLifetime == 0)
+                return false;
+            
+            //cache result between HTTP requests 
+            var cacheManager = EngineContext.Current.Resolve<IStaticCacheManager>();
+            var cacheKey = string.Format(CustomerCacheEventConsumer.CUSTOMER_PASSWORD_LIFETIME, customer.Id);
+
+            //get current password usage time
+            var currentLifetime = cacheManager.Get(cacheKey, () =>
+            {
+                var customerPassword = EngineContext.Current.Resolve<ICustomerService>().GetCurrentPassword(customer.Id);
+                //password is not found, so return max value to force customer to change password
+                if (customerPassword == null)
+                    return int.MaxValue;
+
+                return (DateTime.UtcNow - customerPassword.CreatedOnUtc).Days;
+            });
+
+            return currentLifetime >= customerSettings.PasswordLifetime;
         }
     }
 }

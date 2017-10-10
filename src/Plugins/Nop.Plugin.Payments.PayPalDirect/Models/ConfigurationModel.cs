@@ -1,6 +1,6 @@
-﻿using System.Web.Mvc;
-using Nop.Web.Framework;
-using Nop.Web.Framework.Mvc;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Web.Framework.Mvc.ModelBinding;
+using Nop.Web.Framework.Mvc.Models;
 
 namespace Nop.Plugin.Payments.PayPalDirect.Models
 {
@@ -22,6 +22,10 @@ namespace Nop.Plugin.Payments.PayPalDirect.Models
         [NopResourceDisplayName("Plugins.Payments.PayPalDirect.Fields.UseSandbox")]
         public bool UseSandbox { get; set; }
         public bool UseSandbox_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Plugins.Payments.PayPalDirect.Fields.PassPurchasedItems")]
+        public bool PassPurchasedItems { get; set; }
+        public bool PassPurchasedItems_OverrideForStore { get; set; }
 
         public int TransactModeId { get; set; }
         public bool TransactModeId_OverrideForStore { get; set; }

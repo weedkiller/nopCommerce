@@ -90,8 +90,10 @@ namespace Nop.Services.Tests.Orders
 
         private IGeoLookupService _geoLookupService;
         private ICountryService _countryService;
+        private IStateProvinceService _stateProvinceService;
         private CustomerSettings _customerSettings;
         private AddressSettings _addressSettings;
+        private ICustomNumberFormatter _customNumberFormatter;
 
         private Store _store;
 
@@ -161,6 +163,7 @@ namespace Nop.Services.Tests.Orders
 
             _geoLookupService = MockRepository.GenerateMock<IGeoLookupService>();
             _countryService = MockRepository.GenerateMock<ICountryService>();
+            _stateProvinceService = MockRepository.GenerateMock<IStateProvinceService>();
             _customerSettings = new CustomerSettings();
             _addressSettings = new AddressSettings();
 
@@ -171,14 +174,15 @@ namespace Nop.Services.Tests.Orders
             _taxSettings.DefaultTaxAddressId = 10;
             _addressService = MockRepository.GenerateMock<IAddressService>();
             _addressService.Expect(x => x.GetAddressById(_taxSettings.DefaultTaxAddressId)).Return(new Address { Id = _taxSettings.DefaultTaxAddressId });
-            _taxService = new TaxService(_addressService, _workContext, _taxSettings,
-                pluginFinder, _geoLookupService, _countryService, _logger, _customerSettings, _addressSettings);
+            _taxService = new TaxService(_addressService, _workContext, _storeContext, _taxSettings,
+                pluginFinder, _geoLookupService, _countryService, _stateProvinceService, _logger, _webHelper,
+                _customerSettings, _shippingSettings, _addressSettings);
 
             _rewardPointService = MockRepository.GenerateMock<IRewardPointService>();
             _rewardPointsSettings = new RewardPointsSettings();
 
             _orderTotalCalcService = new OrderTotalCalculationService(_workContext, _storeContext,
-                _priceCalcService, _taxService, _shippingService, _paymentService,
+                _priceCalcService, _productService, _productAttributeParser, _taxService, _shippingService, _paymentService,
                 _checkoutAttributeParser, _discountService, _giftCardService,
                 _genericAttributeService, _rewardPointService,
                 _taxSettings, _rewardPointsSettings, _shippingSettings, _shoppingCartSettings, _catalogSettings);
@@ -198,6 +202,7 @@ namespace Nop.Services.Tests.Orders
             _affiliateService = MockRepository.GenerateMock<IAffiliateService>();
             _vendorService = MockRepository.GenerateMock<IVendorService>();
             _pdfService = MockRepository.GenerateMock<IPdfService>();
+            _customNumberFormatter = MockRepository.GenerateMock<ICustomNumberFormatter>();
 
             _paymentSettings = new PaymentSettings
             {
@@ -229,10 +234,10 @@ namespace Nop.Services.Tests.Orders
                 _customerActivityService, _currencyService, _affiliateService,
                 _eventPublisher,_pdfService, _rewardPointService,
                 _genericAttributeService,
-                _countryService,
+                _countryService, _stateProvinceService,
                 _shippingSettings, _paymentSettings, _rewardPointsSettings,
                 _orderSettings, _taxSettings, _localizationSettings,
-                _currencySettings);
+                _currencySettings, _customNumberFormatter);
         }
         
         [Test]

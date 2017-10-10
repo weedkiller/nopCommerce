@@ -4,6 +4,8 @@ using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Infrastructure;
+using Nop.Services.Catalog;
 using Nop.Services.Localization;
 
 namespace Nop.Services.Orders
@@ -17,13 +19,13 @@ namespace Nop.Services.Orders
         /// Indicates whether the shopping cart requires shipping
         /// </summary>
         /// <param name="shoppingCart">Shopping cart</param>
+        /// <param name="productService">Product service</param>
+        /// <param name="productAttributeParser">Product attribute parser</param>
         /// <returns>True if the shopping cart requires shipping; otherwise, false.</returns>
-        public static bool RequiresShipping(this IList<ShoppingCartItem> shoppingCart)
+        public static bool RequiresShipping(this IList<ShoppingCartItem> shoppingCart,
+            IProductService productService = null, IProductAttributeParser productAttributeParser = null)
         {
-            foreach (var shoppingCartItem in shoppingCart)
-                if (shoppingCartItem.IsShipEnabled)
-                    return true;
-            return false;
+            return shoppingCart.Any(shoppingCartItem => shoppingCartItem.IsShipEnabled(productService, productAttributeParser));
         }
 
         /// <summary>
@@ -83,7 +85,7 @@ namespace Nop.Services.Orders
                 var product= sci.Product;
                 if (product == null)
                 {
-                    throw new NopException(string.Format("Product (Id={0}) cannot be loaded", sci.ProductId));
+                    throw new NopException($"Product (Id={sci.ProductId}) cannot be loaded");
                 }
 
                 if (product.IsRecurring)
@@ -132,8 +134,9 @@ namespace Nop.Services.Orders
 
         public static IEnumerable<ShoppingCartItem> LimitPerStore(this IEnumerable<ShoppingCartItem> cart, int storeId)
         {
-            //simply replace the following code with "return cart"
-            //if you want to share shopping carts between stores
+            var shoppingCartSettings = EngineContext.Current.Resolve<ShoppingCartSettings>();
+            if (shoppingCartSettings.CartsSharedBetweenStores)
+                return cart;
 
             return cart.Where(x => x.StoreId == storeId);
         }

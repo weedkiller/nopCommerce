@@ -2,17 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Web;
-using Nop.Core.ComponentModel;
-using Nop.Core.Domain.Shipping;
-using System.Linq;
-using System.Web.Hosting;
-using System.IO;
-using System.Net;
 
 namespace Nop.Core
 {
@@ -21,6 +16,25 @@ namespace Nop.Core
     /// </summary>
     public partial class CommonHelper
     {
+        #region Fields
+
+        private static readonly Regex _emailRegex;
+        //we use EmailValidator from FluentValidation. So let's keep them sync - https://github.com/JeremySkinner/FluentValidation/blob/master/src/FluentValidation/Validators/EmailValidator.cs
+        private const string _emailExpression = @"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-||_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+([a-z]+|\d|-|\.{0,1}|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])?([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$";
+
+        #endregion
+
+        #region Ctor
+
+        static CommonHelper()
+        {
+            _emailRegex = new Regex(_emailExpression, RegexOptions.IgnoreCase);
+        }
+
+        #endregion
+
+        #region Methods
+
         /// <summary>
         /// Ensures the subscriber email or throw.
         /// </summary>
@@ -51,8 +65,8 @@ namespace Nop.Core
                 return false;
 
             email = email.Trim();
-            var result = Regex.IsMatch(email, "^(?:[\\w\\!\\#\\$\\%\\&\\'\\*\\+\\-\\/\\=\\?\\^\\`\\{\\|\\}\\~]+\\.)*[\\w\\!\\#\\$\\%\\&\\'\\*\\+\\-\\/\\=\\?\\^\\`\\{\\|\\}\\~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-](?!\\.)){0,61}[a-zA-Z0-9]?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\\[(?:(?:[01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}(?:[01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\]))$", RegexOptions.IgnoreCase);
-            return result;
+
+           return _emailRegex.IsMatch(email);
         }
 
         /// <summary>
@@ -62,8 +76,7 @@ namespace Nop.Core
         /// <returns>true if the string is a valid IpAddress and false if it's not</returns>
         public static bool IsValidIpAddress(string ipAddress)
         {
-            IPAddress ip;
-            return IPAddress.TryParse(ipAddress, out ip);
+            return IPAddress.TryParse(ipAddress, out IPAddress _);
         }
 
         /// <summary>
@@ -74,7 +87,7 @@ namespace Nop.Core
         public static string GenerateRandomDigitCode(int length)
         {
             var random = new Random();
-            string str = string.Empty;
+            string str = String.Empty;
             for (int i = 0; i < length; i++)
                 str = String.Concat(str, random.Next(10).ToString());
             return str;
@@ -86,7 +99,7 @@ namespace Nop.Core
         /// <param name="min">Minimum number</param>
         /// <param name="max">Maximum number</param>
         /// <returns>Result</returns>
-        public static int GenerateRandomInteger(int min = 0, int max = int.MaxValue)
+        public static int GenerateRandomInteger(int min = 0, int max = Int32.MaxValue)
         {
             var randomNumberBuffer = new byte[10];
             new RNGCryptoServiceProvider().GetBytes(randomNumberBuffer);
@@ -127,7 +140,7 @@ namespace Nop.Core
         /// <returns>Input string with only numeric values, empty string if input is null/empty</returns>
         public static string EnsureNumericOnly(string str)
         {
-            return string.IsNullOrEmpty(str) ? string.Empty : new string(str.Where(p => char.IsDigit(p)).ToArray());
+            return String.IsNullOrEmpty(str) ? String.Empty : new string(str.Where(p => Char.IsDigit(p)).ToArray());
         }
 
         /// <summary>
@@ -137,7 +150,7 @@ namespace Nop.Core
         /// <returns>Result</returns>
         public static string EnsureNotNull(string str)
         {
-            return str ?? string.Empty;
+            return str ?? String.Empty;
         }
 
         /// <summary>
@@ -147,7 +160,7 @@ namespace Nop.Core
         /// <returns>Boolean</returns>
         public static bool AreNullOrEmpty(params string[] stringsToValidate)
         {
-            return stringsToValidate.Any(p => string.IsNullOrEmpty(p));
+            return stringsToValidate.Any(p => String.IsNullOrEmpty(p));
         }
 
         /// <summary>
@@ -176,43 +189,8 @@ namespace Nop.Core
             }
             return true;
         }
-
-        private static AspNetHostingPermissionLevel? _trustLevel;
-        /// <summary>
-        /// Finds the trust level of the running application (http://blogs.msdn.com/dmitryr/archive/2007/01/23/finding-out-the-current-trust-level-in-asp-net.aspx)
-        /// </summary>
-        /// <returns>The current trust level.</returns>
-        public static AspNetHostingPermissionLevel GetTrustLevel()
-        {
-            if (!_trustLevel.HasValue)
-            {
-                //set minimum
-                _trustLevel = AspNetHostingPermissionLevel.None;
-
-                //determine maximum
-                foreach (AspNetHostingPermissionLevel trustLevel in new[] {
-                                AspNetHostingPermissionLevel.Unrestricted,
-                                AspNetHostingPermissionLevel.High,
-                                AspNetHostingPermissionLevel.Medium,
-                                AspNetHostingPermissionLevel.Low,
-                                AspNetHostingPermissionLevel.Minimal
-                            })
-                {
-                    try
-                    {
-                        new AspNetHostingPermission(trustLevel).Demand();
-                        _trustLevel = trustLevel;
-                        break; //we've set the highest permission we can
-                    }
-                    catch (System.Security.SecurityException)
-                    {
-                        continue;
-                    }
-                }
-            }
-            return _trustLevel.Value;
-        }
-
+        
+       
         /// <summary>
         /// Sets a property on an object to a valuae.
         /// </summary>
@@ -221,8 +199,8 @@ namespace Nop.Core
         /// <param name="value">The value to set the property to.</param>
         public static void SetProperty(object instance, string propertyName, object value)
         {
-            if (instance == null) throw new ArgumentNullException("instance");
-            if (propertyName == null) throw new ArgumentNullException("propertyName");
+            if (instance == null) throw new ArgumentNullException(nameof(instance));
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
 
             Type instanceType = instance.GetType();
             PropertyInfo pi = instanceType.GetProperty(propertyName);
@@ -233,30 +211,6 @@ namespace Nop.Core
             if (value != null && !value.GetType().IsAssignableFrom(pi.PropertyType))
                 value = To(value, pi.PropertyType);
             pi.SetValue(instance, value, new object[0]);
-        }
-
-        public static TypeConverter GetNopCustomTypeConverter(Type type)
-        {
-            //we can't use the following code in order to register our custom type descriptors
-            //TypeDescriptor.AddAttributes(typeof(List<int>), new TypeConverterAttribute(typeof(GenericListTypeConverter<int>)));
-            //so we do it manually here
-
-            if (type == typeof(List<int>))
-                return new GenericListTypeConverter<int>();
-            if (type == typeof(List<decimal>))
-                return new GenericListTypeConverter<decimal>();
-            if (type == typeof(List<string>))
-                return new GenericListTypeConverter<string>();
-            if (type == typeof(ShippingOption))
-                return new ShippingOptionTypeConverter();
-            if (type == typeof(List<ShippingOption>) || type == typeof(IList<ShippingOption>))
-                return new ShippingOptionListTypeConverter();
-            if (type == typeof(PickupPoint))
-                return new PickupPointTypeConverter();
-            if (type == typeof(Dictionary<int, int>))
-                return new GenericDictionaryTypeConverter<int, int>();
-
-            return TypeDescriptor.GetConverter(type);
         }
 
         /// <summary>
@@ -283,14 +237,17 @@ namespace Nop.Core
             {
                 var sourceType = value.GetType();
 
-                TypeConverter destinationConverter = GetNopCustomTypeConverter(destinationType);
-                TypeConverter sourceConverter = GetNopCustomTypeConverter(sourceType);
+                var destinationConverter = TypeDescriptor.GetConverter(destinationType);
                 if (destinationConverter != null && destinationConverter.CanConvertFrom(value.GetType()))
                     return destinationConverter.ConvertFrom(null, culture, value);
+
+                var sourceConverter = TypeDescriptor.GetConverter(sourceType);
                 if (sourceConverter != null && sourceConverter.CanConvertTo(destinationType))
                     return sourceConverter.ConvertTo(null, culture, value, destinationType);
+
                 if (destinationType.IsEnum && value is int)
                     return Enum.ToObject(destinationType, (int)value);
+
                 if (!destinationType.IsInstanceOfType(value))
                     return Convert.ChangeType(value, destinationType, culture);
             }
@@ -316,13 +273,16 @@ namespace Nop.Core
         /// <returns>Converted string</returns>
         public static string ConvertEnum(string str)
         {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            string result = string.Empty;
+            if (String.IsNullOrEmpty(str)) return String.Empty;
+            string result = String.Empty;
             foreach (var c in str)
                 if (c.ToString() != c.ToString().ToLower())
                     result += " " + c.ToString();
                 else
                     result += c.ToString();
+
+            //ensure no spaces (e.g. when the first letter is upper case)
+            result = result.TrimStart();
             return result;
         }
 
@@ -332,11 +292,10 @@ namespace Nop.Core
         public static void SetTelerikCulture()
         {
             //little hack here
-            //always set culture to 'en-US' (Kendo UI has a bug related to editing decimal values in other cultures). Like currently it's done for admin area in Global.asax.cs
-
+            //always set culture to 'en-US' (Kendo UI has a bug related to editing decimal values in other cultures)
             var culture = new CultureInfo("en-US");
-            Thread.CurrentThread.CurrentCulture = culture;
-            Thread.CurrentThread.CurrentUICulture = culture;
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
         }
 
         /// <summary>
@@ -362,16 +321,87 @@ namespace Nop.Core
         /// <returns>The physical path. E.g. "c:\inetpub\wwwroot\bin"</returns>
         public static string MapPath(string path)
         {
-            if (HostingEnvironment.IsHosted)
+            path = path.Replace("~/", "").TrimStart('/').Replace('/', '\\');
+            return Path.Combine(BaseDirectory??String.Empty, path);
+        }
+
+        /// <summary>
+        /// Get private fields property value
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <param name="fieldName">Feild name</param>
+        /// <returns>Value</returns>
+        public static object GetPrivateFieldValue(object target, string fieldName)
+        {
+            if (target == null)
             {
-                //hosted
-                return HostingEnvironment.MapPath(path);
+                throw new ArgumentNullException("target", "The assignment target cannot be null.");
             }
 
-            //not hosted. For example, run in unit tests
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            path = path.Replace("~/", "").TrimStart('/').Replace('/', '\\');
-            return Path.Combine(baseDirectory, path);
-        }        
+            if (String.IsNullOrEmpty(fieldName))
+            {
+                throw new ArgumentException("fieldName", "The field name cannot be null or empty.");
+            }
+
+            Type t = target.GetType();
+            FieldInfo fi = null;
+
+            while (t != null)
+            {
+                fi = t.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+
+                if (fi != null) break;
+
+                t = t.BaseType;
+            }
+
+            if (fi == null)
+            {
+                throw new Exception($"Field '{fieldName}' not found in type hierarchy.");
+            }
+
+            return fi.GetValue(target);
+        }
+
+        /// <summary>
+        ///  Depth-first recursive delete, with handling for descendant directories open in Windows Explorer.
+        /// </summary>
+        /// <param name="path">Directory path</param>
+        public static void DeleteDirectory(string path)
+        {
+            if (String.IsNullOrEmpty(path))
+                throw new ArgumentNullException(path);
+
+            //find more info about directory deletion
+            //and why we use this approach at https://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true
+
+            foreach (string directory in Directory.GetDirectories(path))
+            {
+                DeleteDirectory(directory);
+            }
+
+            try
+            {
+                Directory.Delete(path, true);
+            }
+            catch (IOException)
+            {
+                Directory.Delete(path, true);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Directory.Delete(path, true);
+            }
+        }
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets application base path
+        /// </summary>
+        internal static string BaseDirectory { get; set; }
+        
+        #endregion
     }
 }

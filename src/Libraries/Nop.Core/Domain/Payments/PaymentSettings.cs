@@ -26,8 +26,18 @@ namespace Nop.Core.Domain.Payments
         public bool BypassPaymentMethodSelectionIfOnlyOne { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to show payment method descriptions on checkout pages in the public store
+        /// Gets or sets a value indicating whether to show payment method descriptions on "choose payment method" checkout page in the public store
         /// </summary>
         public bool ShowPaymentMethodDescriptions { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether we should skip 'payment info' page for redirection payment methods
+        /// </summary>
+        public bool SkipPaymentInfoStepForRedirectionPaymentMethods { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to cancel the recurring payment after failed last payment 
+        /// </summary>
+        public bool CancelRecurringPaymentsAfterFailedPayment { get; set; }
     }
 }

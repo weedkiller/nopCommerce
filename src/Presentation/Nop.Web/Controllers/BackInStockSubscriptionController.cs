@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
@@ -25,7 +26,7 @@ namespace Nop.Web.Controllers
         
         #endregion
 
-		#region Constructors
+		#region Ctor
 
         public BackInStockSubscriptionController(IProductService productService,
             IWorkContext workContext, 
@@ -49,7 +50,7 @@ namespace Nop.Web.Controllers
         #region Methods
 
         // Product details page > back in stock subscribe
-        public ActionResult SubscribePopup(int productId)
+        public virtual IActionResult SubscribePopup(int productId)
         {
             var product = _productService.GetProductById(productId);
             if (product == null || product.Deleted)
@@ -76,8 +77,9 @@ namespace Nop.Web.Controllers
             }
             return PartialView(model);
         }
+
         [HttpPost]
-        public ActionResult SubscribePopupPOST(int productId)
+        public virtual IActionResult SubscribePopupPOST(int productId)
         {
             var product = _productService.GetProductById(productId);
             if (product == null || product.Deleted)
@@ -138,7 +140,7 @@ namespace Nop.Web.Controllers
 
 
         // My account / Back in stock subscriptions
-        public ActionResult CustomerSubscriptions(int? page)
+        public virtual IActionResult CustomerSubscriptions(int? pageNumber)
         {
             if (_customerSettings.HideBackInStockSubscriptionsTab)
             {
@@ -146,9 +148,9 @@ namespace Nop.Web.Controllers
             }
 
             int pageIndex = 0;
-            if (page > 0)
+            if (pageNumber > 0)
             {
-                pageIndex = page.Value - 1;
+                pageIndex = pageNumber.Value - 1;
             }
             var pageSize = 10;
 
@@ -183,23 +185,22 @@ namespace Nop.Web.Controllers
                 ShowTotalSummary = false,
                 RouteActionName = "CustomerBackInStockSubscriptionsPaged",
                 UseRouteLinks = true,
-                RouteValues = new BackInStockSubscriptionsRouteValues { page = pageIndex }
+                RouteValues = new BackInStockSubscriptionsRouteValues { pageNumber = pageIndex }
             };
 
             return View(model);
         }
         [HttpPost, ActionName("CustomerSubscriptions")]
-        public ActionResult CustomerSubscriptionsPOST(FormCollection formCollection)
+        public virtual IActionResult CustomerSubscriptionsPOST(IFormCollection formCollection)
         {
-            foreach (var key in formCollection.AllKeys)
+            foreach (var key in formCollection.Keys)
             {
                 var value = formCollection[key];
 
                 if (value.Equals("on") && key.StartsWith("biss", StringComparison.InvariantCultureIgnoreCase))
                 {
                     var id = key.Replace("biss", "").Trim();
-                    int subscriptionId;
-                    if (Int32.TryParse(id, out subscriptionId))
+                    if (Int32.TryParse(id, out int subscriptionId))
                     {
                         var subscription = _backInStockSubscriptionService.GetSubscriptionById(subscriptionId);
                         if (subscription != null && subscription.CustomerId == _workContext.CurrentCustomer.Id)

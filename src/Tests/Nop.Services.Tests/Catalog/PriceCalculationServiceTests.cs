@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Stores;
+using Nop.Core.Infrastructure;
 using Nop.Services.Catalog;
 using Nop.Services.Discounts;
 using Nop.Tests;
@@ -28,14 +32,15 @@ namespace Nop.Services.Tests.Catalog
         private IPriceCalculationService _priceCalcService;
         private ShoppingCartSettings _shoppingCartSettings;
         private CatalogSettings _catalogSettings;
-        private ICacheManager _cacheManager;
+        private IStaticCacheManager _cacheManager;
 
         private Store _store;
 
         [SetUp]
         public new void SetUp()
         {
-            _workContext = null;
+            _workContext = MockRepository.GenerateMock<IWorkContext>();
+            _workContext.Expect(w => w.WorkingCurrency).Return(new Currency { RoundingType = RoundingType.Rounding001 });
 
             _store = new Store { Id = 1 };
             _storeContext = MockRepository.GenerateMock<IStoreContext>();
@@ -45,7 +50,6 @@ namespace Nop.Services.Tests.Catalog
             _categoryService = MockRepository.GenerateMock<ICategoryService>();
             _manufacturerService = MockRepository.GenerateMock<IManufacturerService>();
             _productService = MockRepository.GenerateMock<IProductService>();
-
 
             _productAttributeParser = MockRepository.GenerateMock<IProductAttributeParser>();
 
@@ -64,6 +68,20 @@ namespace Nop.Services.Tests.Catalog
                 _cacheManager,
                 _shoppingCartSettings, 
                 _catalogSettings);
+
+            var nopEngine = MockRepository.GenerateMock<NopEngine>();
+            var serviceProvider = MockRepository.GenerateMock<IServiceProvider>();
+            var httpContextAccessor = MockRepository.GenerateMock<IHttpContextAccessor>();
+            serviceProvider.Expect(x => x.GetRequiredService(typeof(IHttpContextAccessor))).Return(httpContextAccessor);
+            serviceProvider.Expect(x => x.GetRequiredService(typeof(IWorkContext))).Return(_workContext);
+            nopEngine.Expect(x => x.ServiceProvider).Return(serviceProvider);
+            EngineContext.Replace(nopEngine);
+        }
+
+        [OneTimeTearDown]
+        public void TearDown()
+        {
+            EngineContext.Replace(null);
         }
 
         [Test]
@@ -116,7 +134,7 @@ namespace Nop.Services.Tests.Catalog
                 Price = 8,
                 Quantity = 5,
                 Product = product,
-                StartDateTimeUtc = new DateTime(2017, 01, 03)
+                StartDateTimeUtc = new DateTime(2027, 01, 03)
             });
             product.TierPrices.Add(new TierPrice
             {

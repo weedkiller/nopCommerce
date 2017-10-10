@@ -3,6 +3,8 @@ using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Nop.Core;
+using Nop.Core.Data;
+using Nop.Core.Plugins;
 
 namespace Nop.Web.Framework.Security
 {
@@ -123,7 +125,8 @@ namespace Nop.Web.Framework.Security
                 bool flag13 = true;
                 if (checkRead)
                 {
-                    flag13 = flag13 && flag11;
+                    //flag13 = flag13 && flag11;
+                    flag13 = flag11;
                 }
                 if (checkWrite)
                 {
@@ -155,15 +158,15 @@ namespace Nop.Web.Framework.Security
             var dirsToCheck = new List<string>();
             //dirsToCheck.Add(rootDir);
             dirsToCheck.Add(Path.Combine(rootDir, "App_Data"));
-            dirsToCheck.Add(Path.Combine(rootDir, "Administration\\db_backups"));
             dirsToCheck.Add(Path.Combine(rootDir, "bin"));
-            dirsToCheck.Add(Path.Combine(rootDir, "content"));
-            dirsToCheck.Add(Path.Combine(rootDir, "content\\images"));
-            dirsToCheck.Add(Path.Combine(rootDir, "content\\images\\thumbs"));
-            dirsToCheck.Add(Path.Combine(rootDir, "content\\images\\uploaded"));
-            dirsToCheck.Add(Path.Combine(rootDir, "content\\files\\exportimport"));
             dirsToCheck.Add(Path.Combine(rootDir, "plugins"));
             dirsToCheck.Add(Path.Combine(rootDir, "plugins\\bin"));
+            dirsToCheck.Add(Path.Combine(rootDir, "wwwroot\\bundles"));
+            dirsToCheck.Add(Path.Combine(rootDir, "wwwroot\\db_backups"));
+            dirsToCheck.Add(Path.Combine(rootDir, "wwwroot\\files\\exportimport"));
+            dirsToCheck.Add(Path.Combine(rootDir, "wwwroot\\images"));
+            dirsToCheck.Add(Path.Combine(rootDir, "wwwroot\\images\\thumbs"));
+            dirsToCheck.Add(Path.Combine(rootDir, "wwwroot\\images\\uploaded"));
             return dirsToCheck;
         }
 
@@ -173,13 +176,11 @@ namespace Nop.Web.Framework.Security
         /// <returns>Result</returns>
         public static IEnumerable<string> GetFilesWrite()
         {
-            string rootDir = CommonHelper.MapPath("~/");
-            var filesToCheck = new List<string>();
-            filesToCheck.Add(Path.Combine(rootDir, "Global.asax"));
-            filesToCheck.Add(Path.Combine(rootDir, "web.config"));
-            filesToCheck.Add(Path.Combine(rootDir, "App_Data\\InstalledPlugins.txt"));
-            filesToCheck.Add(Path.Combine(rootDir, "App_Data\\Settings.txt"));
-            return filesToCheck;
+            return new List<string>
+            {
+                CommonHelper.MapPath(PluginManager.InstalledPluginsFilePath),
+                CommonHelper.MapPath(DataSettingsManager.DataSettingsFilePath)
+            };
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -21,8 +21,8 @@ namespace Nop.Services.ExportImport.Help
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="properties">All acsess properties</param>
-        public PropertyManager(PropertyByName<T>[] properties)
+        /// <param name="properties">All access properties</param>
+        public PropertyManager(IEnumerable<PropertyByName<T>> properties)
         {
             _properties = new Dictionary<string, PropertyByName<T>>();
 
@@ -36,12 +36,12 @@ namespace Nop.Services.ExportImport.Help
         }
 
         /// <summary>
-        /// Curent object to acsess
+        /// Current object to access
         /// </summary>
         public T CurrentObject { get; set; }
 
         /// <summary>
-        /// Return properti index
+        /// Return property index
         /// </summary>
         /// <param name="propertyName">Property name</param>
         /// <returns></returns>
@@ -116,7 +116,7 @@ namespace Nop.Services.ExportImport.Help
                         fCell.Value = dropDownElement;
                     }
 
-                    validator.Formula.ExcelFormula = string.Format("{0}!{1}:{2}", fWorksheet.Name, fWorksheet.Cells[1, prop.PropertyOrderPosition].Address, fWorksheet.Cells[dropDownElements.Length, prop.PropertyOrderPosition].Address);
+                    validator.Formula.ExcelFormula = $"{fWorksheet.Name}!{fWorksheet.Cells[1, prop.PropertyOrderPosition].Address}:{fWorksheet.Cells[dropDownElements.Length, prop.PropertyOrderPosition].Address}";
                 }
                 else
                 {
@@ -185,14 +185,14 @@ namespace Nop.Services.ExportImport.Help
             get { return _properties.Values.ToArray(); }
         }
 
-
+        
         public void SetSelectList(string propertyName, SelectList list)
         {
             var tempProperty = GetProperty(propertyName);
             if (tempProperty != null)
                 tempProperty.DropDownElements = list;
         }
-        
+
         public bool IsCaption
         {
             get { return _properties.Values.All(p => p.IsCaption); }

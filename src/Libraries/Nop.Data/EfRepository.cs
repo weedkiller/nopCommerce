@@ -45,8 +45,30 @@ namespace Nop.Data
             var msg = string.Empty;
             foreach (var validationErrors in exc.EntityValidationErrors)
                 foreach (var error in validationErrors.ValidationErrors)
-                    msg += string.Format("Property: {0} Error: {1}", error.PropertyName, error.ErrorMessage) + Environment.NewLine;
+                    msg += $"Property: {error.PropertyName} Error: {error.ErrorMessage}" + Environment.NewLine;
             return msg;
+        }
+
+        /// <summary>
+        /// Rollback of entity changes and return full error message
+        /// </summary>
+        /// <param name="dbEx">Exception</param>
+        /// <returns>Error</returns>
+        protected string GetFullErrorTextAndRollbackEntityChanges(DbEntityValidationException dbEx)
+        {
+            var fullErrorText = GetFullErrorText(dbEx);
+
+            foreach (var entry in dbEx.EntityValidationErrors.Select(error => error.Entry))
+            {
+                if (entry == null)
+                    continue;
+
+                //rollback of entity changes
+                entry.State = EntityState.Unchanged;
+            }
+
+            this._context.SaveChanges();
+            return fullErrorText;
         }
 
         #endregion
@@ -74,7 +96,7 @@ namespace Nop.Data
             try
             {
                 if (entity == null)
-                    throw new ArgumentNullException("entity");
+                    throw new ArgumentNullException(nameof(entity));
 
                 this.Entities.Add(entity);
 
@@ -82,7 +104,8 @@ namespace Nop.Data
             }
             catch (DbEntityValidationException dbEx)
             {
-                throw new Exception(GetFullErrorText(dbEx), dbEx);
+                //ensure that the detailed error text is saved in the Log
+                throw new Exception(GetFullErrorTextAndRollbackEntityChanges(dbEx), dbEx);
             }
         }
 
@@ -95,7 +118,7 @@ namespace Nop.Data
             try
             {
                 if (entities == null)
-                    throw new ArgumentNullException("entities");
+                    throw new ArgumentNullException(nameof(entities));
 
                 foreach (var entity in entities)
                     this.Entities.Add(entity);
@@ -104,7 +127,8 @@ namespace Nop.Data
             }
             catch (DbEntityValidationException dbEx)
             {
-                throw new Exception(GetFullErrorText(dbEx), dbEx);
+                //ensure that the detailed error text is saved in the Log
+                throw new Exception(GetFullErrorTextAndRollbackEntityChanges(dbEx), dbEx);
             }
         }
 
@@ -117,13 +141,14 @@ namespace Nop.Data
             try
             {
                 if (entity == null)
-                    throw new ArgumentNullException("entity");
+                    throw new ArgumentNullException(nameof(entity));
 
                 this._context.SaveChanges();
             }
             catch (DbEntityValidationException dbEx)
             {
-                throw new Exception(GetFullErrorText(dbEx), dbEx);
+                //ensure that the detailed error text is saved in the Log
+                throw new Exception(GetFullErrorTextAndRollbackEntityChanges(dbEx), dbEx);
             }
         }
 
@@ -136,13 +161,14 @@ namespace Nop.Data
             try
             {
                 if (entities == null)
-                    throw new ArgumentNullException("entities");
+                    throw new ArgumentNullException(nameof(entities));
 
                 this._context.SaveChanges();
             }
             catch (DbEntityValidationException dbEx)
             {
-                throw new Exception(GetFullErrorText(dbEx), dbEx);
+                //ensure that the detailed error text is saved in the Log
+                throw new Exception(GetFullErrorTextAndRollbackEntityChanges(dbEx), dbEx);
             }
         }
 
@@ -155,7 +181,7 @@ namespace Nop.Data
             try
             {
                 if (entity == null)
-                    throw new ArgumentNullException("entity");
+                    throw new ArgumentNullException(nameof(entity));
 
                 this.Entities.Remove(entity);
 
@@ -163,7 +189,8 @@ namespace Nop.Data
             }
             catch (DbEntityValidationException dbEx)
             {
-                throw new Exception(GetFullErrorText(dbEx), dbEx);
+                //ensure that the detailed error text is saved in the Log
+                throw new Exception(GetFullErrorTextAndRollbackEntityChanges(dbEx), dbEx);
             }
         }
 
@@ -176,7 +203,7 @@ namespace Nop.Data
             try
             {
                 if (entities == null)
-                    throw new ArgumentNullException("entities");
+                    throw new ArgumentNullException(nameof(entities));
 
                 foreach (var entity in entities)
                     this.Entities.Remove(entity);
@@ -185,7 +212,8 @@ namespace Nop.Data
             }
             catch (DbEntityValidationException dbEx)
             {
-                throw new Exception(GetFullErrorText(dbEx), dbEx);
+                //ensure that the detailed error text is saved in the Log
+                throw new Exception(GetFullErrorTextAndRollbackEntityChanges(dbEx), dbEx);
             }
         }
         

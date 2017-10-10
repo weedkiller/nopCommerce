@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain;
@@ -52,6 +53,7 @@ namespace Nop.Services.Installation
         private readonly IRepository<Language> _languageRepository;
         private readonly IRepository<Currency> _currencyRepository;
         private readonly IRepository<Customer> _customerRepository;
+        private readonly IRepository<CustomerPassword> _customerPasswordRepository;
         private readonly IRepository<CustomerRole> _customerRoleRepository;
         private readonly IRepository<SpecificationAttribute> _specificationAttributeRepository;
         private readonly IRepository<CheckoutAttribute> _checkoutAttributeRepository;
@@ -96,8 +98,10 @@ namespace Nop.Services.Installation
         private readonly IRepository<Shipment> _shipmentRepository;
         private readonly IRepository<SearchTerm> _searchTermRepository;
         private readonly IRepository<ShipmentItem> _shipmentItemRepository;
+        private readonly IRepository<StockQuantityHistory> _stockQuantityHistoryRepository;
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly IWebHelper _webHelper;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         #endregion
 
@@ -110,6 +114,7 @@ namespace Nop.Services.Installation
             IRepository<Language> languageRepository,
             IRepository<Currency> currencyRepository,
             IRepository<Customer> customerRepository,
+            IRepository<CustomerPassword> customerPasswordRepository,
             IRepository<CustomerRole> customerRoleRepository,
             IRepository<SpecificationAttribute> specificationAttributeRepository,
             IRepository<CheckoutAttribute> checkoutAttributeRepository,
@@ -154,8 +159,10 @@ namespace Nop.Services.Installation
             IRepository<Shipment> shipmentRepository,
             IRepository<ShipmentItem> shipmentItemRepository,
             IRepository<SearchTerm> searchTermRepository,
+            IRepository<StockQuantityHistory> stockQuantityHistoryRepository,
             IGenericAttributeService genericAttributeService,
-            IWebHelper webHelper)
+            IWebHelper webHelper,
+            IHostingEnvironment hostingEnvironment)
         {
             this._storeRepository = storeRepository;
             this._measureDimensionRepository = measureDimensionRepository;
@@ -164,6 +171,7 @@ namespace Nop.Services.Installation
             this._languageRepository = languageRepository;
             this._currencyRepository = currencyRepository;
             this._customerRepository = customerRepository;
+            this._customerPasswordRepository = customerPasswordRepository;
             this._customerRoleRepository = customerRoleRepository;
             this._specificationAttributeRepository = specificationAttributeRepository;
             this._checkoutAttributeRepository = checkoutAttributeRepository;
@@ -208,13 +216,20 @@ namespace Nop.Services.Installation
             this._shipmentRepository = shipmentRepository;
             this._shipmentItemRepository = shipmentItemRepository;
             this._searchTermRepository = searchTermRepository;
+            this._stockQuantityHistoryRepository = stockQuantityHistoryRepository;
             this._genericAttributeService = genericAttributeService;
             this._webHelper = webHelper;
+            this._hostingEnvironment = hostingEnvironment;
         }
 
         #endregion
 
         #region Utilities
+
+        protected virtual string GetSamplesPath()
+        {
+            return Path.Combine(_hostingEnvironment.WebRootPath, "images\\samples\\");
+        }
 
         protected virtual void InstallStores()
         {
@@ -389,67 +404,73 @@ namespace Nop.Services.Installation
                     DisplayOrder = 1,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Australian Dollar",
                     CurrencyCode = "AUD",
-                    Rate = 1.14M,
+                    Rate = 1.36M,
                     DisplayLocale = "en-AU",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 2,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "British Pound",
                     CurrencyCode = "GBP",
-                    Rate = 0.62M,
+                    Rate = 0.82M,
                     DisplayLocale = "en-GB",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 3,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Canadian Dollar",
                     CurrencyCode = "CAD",
-                    Rate = 1.12M,
+                    Rate = 1.32M,
                     DisplayLocale = "en-CA",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 4,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Chinese Yuan Renminbi",
                     CurrencyCode = "CNY",
-                    Rate = 6.11M,
+                    Rate = 6.93M,
                     DisplayLocale = "zh-CN",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 5,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Euro",
                     CurrencyCode = "EUR",
-                    Rate = 0.79M,
+                    Rate = 0.95M,
                     DisplayLocale = "",
                     //CustomFormatting = "ˆ0.00",
-                    CustomFormatting = string.Format("{0}0.00", "\u20ac"),
+                    CustomFormatting = $"{"\u20ac"}0.00",
                     Published = true,
                     DisplayOrder = 6,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
@@ -462,54 +483,72 @@ namespace Nop.Services.Installation
                     DisplayOrder = 7,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Japanese Yen",
                     CurrencyCode = "JPY",
-                    Rate = 109.27M,
+                    Rate = 116.64M,
                     DisplayLocale = "ja-JP",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 8,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Russian Rouble",
                     CurrencyCode = "RUB",
-                    Rate = 43.51M,
+                    Rate = 59.75M,
                     DisplayLocale = "ru-RU",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 9,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
                 new Currency
                 {
                     Name = "Swedish Krona",
                     CurrencyCode = "SEK",
-                    Rate = 7.39M,
+                    Rate = 9.08M,
                     DisplayLocale = "sv-SE",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 10,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding1
                 },
                 new Currency
                 {
                     Name = "Romanian Leu",
                     CurrencyCode = "RON",
-                    Rate = 3.52M,
+                    Rate = 4.28M,
                     DisplayLocale = "ro-RO",
                     CustomFormatting = "",
                     Published = false,
                     DisplayOrder = 11,
                     CreatedOnUtc = DateTime.UtcNow,
                     UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
+                },
+                new Currency
+                {
+                    Name = "Indian Rupee",
+                    CurrencyCode = "INR",
+                    Rate = 68.17M,
+                    DisplayLocale = "en-IN",
+                    CustomFormatting = "",
+                    Published = false,
+                    DisplayOrder = 12,
+                    CreatedOnUtc = DateTime.UtcNow,
+                    UpdatedOnUtc = DateTime.UtcNow,
+                    RoundingType = RoundingType.Rounding001
                 },
             };
             _currencyRepository.Insert(currencies);
@@ -4062,19 +4101,26 @@ namespace Nop.Services.Installation
                                 };
             _customerRoleRepository.Insert(customerRoles);
 
+            //default store 
+            var defaultStore = _storeRepository.Table.FirstOrDefault();
+
+            if (defaultStore == null)
+                throw new Exception("No default store could be loaded");
+
+            var storeId = defaultStore.Id;
+
             //admin user
             var adminUser = new Customer
             {
                 CustomerGuid = Guid.NewGuid(),
                 Email = defaultUserEmail,
                 Username = defaultUserEmail,
-                Password = defaultUserPassword,
-                PasswordFormat = PasswordFormat.Clear,
-                PasswordSalt = "",
                 Active = true,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
+
             var defaultAdminUserAddress = new Address
             {
                 FirstName = "John",
@@ -4094,14 +4140,20 @@ namespace Nop.Services.Installation
             adminUser.Addresses.Add(defaultAdminUserAddress);
             adminUser.BillingAddress = defaultAdminUserAddress;
             adminUser.ShippingAddress = defaultAdminUserAddress;
+
             adminUser.CustomerRoles.Add(crAdministrators);
             adminUser.CustomerRoles.Add(crForumModerators);
             adminUser.CustomerRoles.Add(crRegistered);
+
             _customerRepository.Insert(adminUser);
             //set default customer name
             _genericAttributeService.SaveAttribute(adminUser, SystemCustomerAttributeNames.FirstName, "John");
             _genericAttributeService.SaveAttribute(adminUser, SystemCustomerAttributeNames.LastName, "Smith");
 
+            //set hashed admin password
+            var customerRegistrationService = EngineContext.Current.Resolve<ICustomerRegistrationService>();
+            customerRegistrationService.ChangePassword(new ChangePasswordRequest(defaultUserEmail, false,
+                 PasswordFormat.Hashed, defaultUserPassword));
 
             //second user
             var secondUserEmail = "steve_gates@nopCommerce.com";
@@ -4110,12 +4162,10 @@ namespace Nop.Services.Installation
                 CustomerGuid = Guid.NewGuid(),
                 Email = secondUserEmail,
                 Username = secondUserEmail,
-                Password = "123456",
-                PasswordFormat = PasswordFormat.Clear,
-                PasswordSalt = "",
                 Active = true,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             var defaultSecondUserAddress = new Address
             {
@@ -4136,12 +4186,23 @@ namespace Nop.Services.Installation
             secondUser.Addresses.Add(defaultSecondUserAddress);
             secondUser.BillingAddress = defaultSecondUserAddress;
             secondUser.ShippingAddress = defaultSecondUserAddress;
+
             secondUser.CustomerRoles.Add(crRegistered);
+
             _customerRepository.Insert(secondUser);
             //set default customer name
             _genericAttributeService.SaveAttribute(secondUser, SystemCustomerAttributeNames.FirstName, defaultSecondUserAddress.FirstName);
             _genericAttributeService.SaveAttribute(secondUser, SystemCustomerAttributeNames.LastName, defaultSecondUserAddress.LastName);
 
+            //set customer password
+            _customerPasswordRepository.Insert(new CustomerPassword
+            {
+                Customer = secondUser,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                PasswordSalt = string.Empty,
+                CreatedOnUtc = DateTime.UtcNow
+            });
 
             //third user
             var thirdUserEmail = "arthur_holmes@nopCommerce.com";
@@ -4150,12 +4211,10 @@ namespace Nop.Services.Installation
                 CustomerGuid = Guid.NewGuid(),
                 Email = thirdUserEmail,
                 Username = thirdUserEmail,
-                Password = "123456",
-                PasswordFormat = PasswordFormat.Clear,
-                PasswordSalt = "",
                 Active = true,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             var defaultThirdUserAddress = new Address
             {
@@ -4175,13 +4234,24 @@ namespace Nop.Services.Installation
             thirdUser.Addresses.Add(defaultThirdUserAddress);
             thirdUser.BillingAddress = defaultThirdUserAddress;
             thirdUser.ShippingAddress = defaultThirdUserAddress;
+
             thirdUser.CustomerRoles.Add(crRegistered);
+
             _customerRepository.Insert(thirdUser);
             //set default customer name
             _genericAttributeService.SaveAttribute(thirdUser, SystemCustomerAttributeNames.FirstName, defaultThirdUserAddress.FirstName);
             _genericAttributeService.SaveAttribute(thirdUser, SystemCustomerAttributeNames.LastName, defaultThirdUserAddress.LastName);
 
-            
+            //set customer password
+            _customerPasswordRepository.Insert(new CustomerPassword
+            {
+                Customer = thirdUser,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                PasswordSalt = string.Empty,
+                CreatedOnUtc = DateTime.UtcNow
+            });
+
             //fourth user
             var fourthUserEmail = "james_pan@nopCommerce.com";
             var fourthUser = new Customer
@@ -4189,12 +4259,10 @@ namespace Nop.Services.Installation
                 CustomerGuid = Guid.NewGuid(),
                 Email = fourthUserEmail,
                 Username = fourthUserEmail,
-                Password = "123456",
-                PasswordFormat = PasswordFormat.Clear,
-                PasswordSalt = "",
                 Active = true,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             var defaultFourthUserAddress = new Address
             {
@@ -4214,12 +4282,23 @@ namespace Nop.Services.Installation
             fourthUser.Addresses.Add(defaultFourthUserAddress);
             fourthUser.BillingAddress = defaultFourthUserAddress;
             fourthUser.ShippingAddress = defaultFourthUserAddress;
+
             fourthUser.CustomerRoles.Add(crRegistered);
+
             _customerRepository.Insert(fourthUser);
             //set default customer name
             _genericAttributeService.SaveAttribute(fourthUser, SystemCustomerAttributeNames.FirstName, defaultFourthUserAddress.FirstName);
             _genericAttributeService.SaveAttribute(fourthUser, SystemCustomerAttributeNames.LastName, defaultFourthUserAddress.LastName);
 
+            //set customer password
+            _customerPasswordRepository.Insert(new CustomerPassword
+            {
+                Customer = fourthUser,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                PasswordSalt = string.Empty,
+                CreatedOnUtc = DateTime.UtcNow
+            });
 
             //fifth user
             var fifthUserEmail = "brenda_lindgren@nopCommerce.com";
@@ -4228,12 +4307,10 @@ namespace Nop.Services.Installation
                 CustomerGuid = Guid.NewGuid(),
                 Email = fifthUserEmail,
                 Username = fifthUserEmail,
-                Password = "123456",
-                PasswordFormat = PasswordFormat.Clear,
-                PasswordSalt = "",
                 Active = true,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             var defaultFifthUserAddress = new Address
             {
@@ -4254,12 +4331,23 @@ namespace Nop.Services.Installation
             fifthUser.Addresses.Add(defaultFifthUserAddress);
             fifthUser.BillingAddress = defaultFifthUserAddress;
             fifthUser.ShippingAddress = defaultFifthUserAddress;
+
             fifthUser.CustomerRoles.Add(crRegistered);
+
             _customerRepository.Insert(fifthUser);
             //set default customer name
             _genericAttributeService.SaveAttribute(fifthUser, SystemCustomerAttributeNames.FirstName, defaultFifthUserAddress.FirstName);
             _genericAttributeService.SaveAttribute(fifthUser, SystemCustomerAttributeNames.LastName, defaultFifthUserAddress.LastName);
 
+            //set customer password
+            _customerPasswordRepository.Insert(new CustomerPassword
+            {
+                Customer = fifthUser,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                PasswordSalt = string.Empty,
+                CreatedOnUtc = DateTime.UtcNow
+            });
 
             //sixth user
             var sixthUserEmail = "victoria_victoria@nopCommerce.com";
@@ -4268,12 +4356,10 @@ namespace Nop.Services.Installation
                 CustomerGuid = Guid.NewGuid(),
                 Email = sixthUserEmail,
                 Username = sixthUserEmail,
-                Password = "123456",
-                PasswordFormat = PasswordFormat.Clear,
-                PasswordSalt = "",
                 Active = true,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             var defaultSixthUserAddress = new Address
             {
@@ -4294,25 +4380,36 @@ namespace Nop.Services.Installation
             sixthUser.Addresses.Add(defaultSixthUserAddress);
             sixthUser.BillingAddress = defaultSixthUserAddress;
             sixthUser.ShippingAddress = defaultSixthUserAddress;
+
             sixthUser.CustomerRoles.Add(crRegistered);
+
             _customerRepository.Insert(sixthUser);
             //set default customer name
             _genericAttributeService.SaveAttribute(sixthUser, SystemCustomerAttributeNames.FirstName, defaultSixthUserAddress.FirstName);
             _genericAttributeService.SaveAttribute(sixthUser, SystemCustomerAttributeNames.LastName, defaultSixthUserAddress.LastName);
 
+            //set customer password
+            _customerPasswordRepository.Insert(new CustomerPassword
+            {
+                Customer = sixthUser,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                PasswordSalt = string.Empty,
+                CreatedOnUtc = DateTime.UtcNow
+            });
 
             //search engine (crawler) built-in user
             var searchEngineUser = new Customer
             {
                 Email = "builtin@search_engine_record.com",
                 CustomerGuid = Guid.NewGuid(),
-                PasswordFormat = PasswordFormat.Clear,
                 AdminComment = "Built-in system guest record used for requests from search engines.",
                 Active = true,
                 IsSystemAccount = true,
                 SystemName = SystemCustomerNames.SearchEngine,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             searchEngineUser.CustomerRoles.Add(crGuests);
             _customerRepository.Insert(searchEngineUser);
@@ -4323,13 +4420,13 @@ namespace Nop.Services.Installation
             {
                 Email = "builtin@background-task-record.com",
                 CustomerGuid = Guid.NewGuid(),
-                PasswordFormat = PasswordFormat.Clear,
                 AdminComment = "Built-in system record used for background tasks.",
                 Active = true,
                 IsSystemAccount = true,
                 SystemName = SystemCustomerNames.BackgroundTask,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = storeId
             };
             backgroundTaskUser.CustomerRoles.Add(crGuests);
             _customerRepository.Insert(backgroundTaskUser);
@@ -4395,9 +4492,12 @@ namespace Nop.Services.Installation
                 ShippingRateComputationMethodSystemName = "Shipping.FixedOrByWeight",
                 CustomValuesXml = string.Empty,
                 VatNumber = string.Empty,
-                CreatedOnUtc = DateTime.UtcNow
+                CreatedOnUtc = DateTime.UtcNow,
+                CustomOrderNumber = string.Empty
             };
             _orderRepository.Insert(firstOrder);
+            firstOrder.CustomOrderNumber = firstOrder.Id.ToString();
+            _orderRepository.Update(firstOrder);
 
             //item Apple iCam
             var firstOrderItem1 = new OrderItem()
@@ -4559,9 +4659,12 @@ namespace Nop.Services.Installation
                 ShippingRateComputationMethodSystemName = "Shipping.FixedOrByWeight",
                 CustomValuesXml = string.Empty,
                 VatNumber = string.Empty,
-                CreatedOnUtc = DateTime.UtcNow
+                CreatedOnUtc = DateTime.UtcNow,
+                CustomOrderNumber = string.Empty
             };
             _orderRepository.Insert(secondOrder);
+            secondOrder.CustomOrderNumber = secondOrder.Id.ToString();
+            _orderRepository.Update(secondOrder);
 
             //order notes
             _orderNoteRepository.Insert(new OrderNote()
@@ -4675,9 +4778,12 @@ namespace Nop.Services.Installation
                 ShippingRateComputationMethodSystemName = string.Empty,
                 CustomValuesXml = string.Empty,
                 VatNumber = string.Empty,
-                CreatedOnUtc = DateTime.UtcNow
+                CreatedOnUtc = DateTime.UtcNow,
+                CustomOrderNumber = string.Empty
             };
             _orderRepository.Insert(thirdOrder);
+            thirdOrder.CustomOrderNumber = thirdOrder.Id.ToString();
+            _orderRepository.Update(thirdOrder);
 
             //order notes
             _orderNoteRepository.Insert(new OrderNote()
@@ -4817,9 +4923,12 @@ namespace Nop.Services.Installation
                 ShippingRateComputationMethodSystemName = "Pickup.PickupInStore",
                 CustomValuesXml = string.Empty,
                 VatNumber = string.Empty,
-                CreatedOnUtc = DateTime.UtcNow
+                CreatedOnUtc = DateTime.UtcNow,
+                CustomOrderNumber = string.Empty
             };
             _orderRepository.Insert(fourthOrder);
+            fourthOrder.CustomOrderNumber = fourthOrder.Id.ToString();
+            _orderRepository.Update(fourthOrder);
 
             //order notes
             _orderNoteRepository.Insert(new OrderNote()
@@ -5026,9 +5135,12 @@ namespace Nop.Services.Installation
                 ShippingRateComputationMethodSystemName = "Shipping.FixedOrByWeight",
                 CustomValuesXml = string.Empty,
                 VatNumber = string.Empty,
-                CreatedOnUtc = DateTime.UtcNow
+                CreatedOnUtc = DateTime.UtcNow,
+                CustomOrderNumber = string.Empty
             };
             _orderRepository.Insert(fifthOrder);
+            fifthOrder.CustomOrderNumber = fifthOrder.Id.ToString();
+            _orderRepository.Update(fifthOrder);
 
             //order notes
             _orderNoteRepository.Insert(new OrderNote()
@@ -5198,13 +5310,6 @@ namespace Nop.Services.Installation
             });
         }
 
-        protected virtual void HashDefaultCustomerPassword(string defaultUserEmail, string defaultUserPassword)
-        {
-            var customerRegistrationService = EngineContext.Current.Resolve<ICustomerRegistrationService>();
-            customerRegistrationService.ChangePassword(new ChangePasswordRequest(defaultUserEmail, false,
-                 PasswordFormat.Hashed, defaultUserPassword));
-        }
-
         protected virtual void InstallEmailAccounts()
         {
             var emailAccounts = new List<EmailAccount>
@@ -5229,311 +5334,360 @@ namespace Nop.Services.Installation
             var eaGeneral = _emailAccountRepository.Table.FirstOrDefault();
             if (eaGeneral == null)
                 throw new Exception("Default email account cannot be loaded");
+
             var messageTemplates = new List<MessageTemplate>
-                               {
-                                   new MessageTemplate
-                                       {
-                                           Name = "Blog.BlogComment",
-                                           Subject = "%Store.Name%. New blog comment.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />A new blog comment has been created for blog post \"%BlogComment.BlogPostTitle%\".</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Customer.BackInStock",
-                                           Subject = "%Store.Name%. Back in stock notification",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Customer.FullName%, <br />Product <a target=\"_blank\" href=\"%BackInStockSubscription.ProductUrl%\">%BackInStockSubscription.ProductName%</a> is in stock.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Customer.EmailValidationMessage",
-                                           Subject = "%Store.Name%. Email validation",
-                                           Body = "<a href=\"%Store.URL%\">%Store.Name%</a>  <br />  <br />  To activate your account <a href=\"%Customer.AccountActivationURL%\">click here</a>.     <br />  <br />  %Store.Name%",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Customer.NewPM",
-                                           Subject = "%Store.Name%. You have received a new private message",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />You have received a new private message.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Customer.PasswordRecovery",
-                                           Subject = "%Store.Name%. Password recovery",
-                                           Body = "<a href=\"%Store.URL%\">%Store.Name%</a>  <br />  <br />  To change your password <a href=\"%Customer.PasswordRecoveryURL%\">click here</a>.     <br />  <br />  %Store.Name%",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Customer.WelcomeMessage",
-                                           Subject = "Welcome to %Store.Name%",
-                                           Body = "We welcome you to <a href=\"%Store.URL%\"> %Store.Name%</a>.<br /><br />You can now take part in the various services we have to offer you. Some of these services include:<br /><br />Permanent Cart - Any products added to your online cart remain there until you remove them, or check them out.<br />Address Book - We can now deliver your products to another address other than yours! This is perfect to send birthday gifts direct to the birthday-person themselves.<br />Order History - View your history of purchases that you have made with us.<br />Products Reviews - Share your opinions on products with our other customers.<br /><br />For help with any of our online services, please email the store-owner: <a href=\"mailto:%Store.Email%\">%Store.Email%</a>.<br /><br />Note: This email address was provided on our registration page. If you own the email and did not register on our site, please send an email to <a href=\"mailto:%Store.Email%\">%Store.Email%</a>.",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Forums.NewForumPost",
-                                           Subject = "%Store.Name%. New Post Notification.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />A new post has been created in the topic <a href=\"%Forums.TopicURL%\">\"%Forums.TopicName%\"</a> at <a href=\"%Forums.ForumURL%\">\"%Forums.ForumName%\"</a> forum.<br /><br />Click <a href=\"%Forums.TopicURL%\">here</a> for more info.<br /><br />Post author: %Forums.PostAuthor%<br />Post body: %Forums.PostBody%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Forums.NewForumTopic",
-                                           Subject = "%Store.Name%. New Topic Notification.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />A new topic <a href=\"%Forums.TopicURL%\">\"%Forums.TopicName%\"</a> has been created at <a href=\"%Forums.ForumURL%\">\"%Forums.ForumName%\"</a> forum.<br /><br />Click <a href=\"%Forums.TopicURL%\">here</a> for more info.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "GiftCard.Notification",
-                                           Subject = "%GiftCard.SenderName% has sent you a gift card for %Store.Name%",
-                                           Body = "<p>You have received a gift card for %Store.Name%</p><p>Dear %GiftCard.RecipientName%, <br /><br />%GiftCard.SenderName% (%GiftCard.SenderEmail%) has sent you a %GiftCard.Amount% gift cart for <a href=\"%Store.URL%\"> %Store.Name%</a></p><p>You gift card code is %GiftCard.CouponCode%</p><p>%GiftCard.Message%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "NewCustomer.Notification",
-                                           Subject = "%Store.Name%. New customer registration",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />A new customer registered with your store. Below are the customer's details:<br />Full name: %Customer.FullName%<br />Email: %Customer.Email%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "NewReturnRequest.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. New return request.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Customer.FullName% has just submitted a new return request. Details are below:<br />Request ID: %ReturnRequest.CustomNumber%<br />Product: %ReturnRequest.Product.Quantity% x Product: %ReturnRequest.Product.Name%<br />Reason for return: %ReturnRequest.Reason%<br />Requested action: %ReturnRequest.RequestedAction%<br />Customer comments:<br />%ReturnRequest.CustomerComment%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "News.NewsComment",
-                                           Subject = "%Store.Name%. New news comment.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />A new news comment has been created for news \"%NewsComment.NewsTitle%\".</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "NewsLetterSubscription.ActivationMessage",
-                                           Subject = "%Store.Name%. Subscription activation message.",
-                                           Body = "<p><a href=\"%NewsLetterSubscription.ActivationUrl%\">Click here to confirm your subscription to our list.</a></p><p>If you received this email by mistake, simply delete it.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "NewsLetterSubscription.DeactivationMessage",
-                                           Subject = "%Store.Name%. Subscription deactivation message.",
-                                           Body = "<p><a href=\"%NewsLetterSubscription.DeactivationUrl%\">Click here to unsubscribe from our newsletter.</a></p><p>If you received this email by mistake, simply delete it.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "NewVATSubmitted.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. New VAT number is submitted.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Customer.FullName% (%Customer.Email%) has just submitted a new VAT number. Details are below:<br />VAT number: %Customer.VatNumber%<br />VAT number status: %Customer.VatNumberStatus%<br />Received name: %VatValidationResult.Name%<br />Received address: %VatValidationResult.Address%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderCancelled.CustomerNotification",
-                                           Subject = "%Store.Name%. Your order cancelled",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Order.CustomerFullName%, <br />Your order has been cancelled. Below is the summary of the order. <br /><br />Order Number: %Order.OrderNumber%<br />Order Details: <a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a><br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod%<br /><br />%Order.Product(s)%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderCompleted.CustomerNotification",
-                                           Subject = "%Store.Name%. Your order completed",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Order.CustomerFullName%, <br />Your order has been completed. Below is the summary of the order. <br /><br />Order Number: %Order.OrderNumber%<br />Order Details: <a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a><br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod%<br /><br />%Order.Product(s)%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "ShipmentDelivered.CustomerNotification",
-                                           Subject = "Your order from %Store.Name% has been delivered.",
-                                           Body = "<p><a href=\"%Store.URL%\"> %Store.Name%</a> <br /> <br /> Hello %Order.CustomerFullName%, <br /> Good news! You order has been delivered. <br /> Order Number: %Order.OrderNumber%<br /> Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a><br /> Date Ordered: %Order.CreatedOn%<br /> <br /> <br /> <br /> Billing Address<br /> %Order.BillingFirstName% %Order.BillingLastName%<br /> %Order.BillingAddress1%<br /> %Order.BillingCity% %Order.BillingZipPostalCode%<br /> %Order.BillingStateProvince% %Order.BillingCountry%<br /> <br /> <br /> <br /> Shipping Address<br /> %Order.ShippingFirstName% %Order.ShippingLastName%<br /> %Order.ShippingAddress1%<br /> %Order.ShippingCity% %Order.ShippingZipPostalCode%<br /> %Order.ShippingStateProvince% %Order.ShippingCountry%<br /> <br /> Shipping Method: %Order.ShippingMethod% <br /> <br /> Delivered Products: <br /> <br /> %Shipment.Product(s)%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderPlaced.CustomerNotification",
-                                           Subject = "Order receipt from %Store.Name%.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Order.CustomerFullName%, <br />Thanks for buying from <a href=\"%Store.URL%\">%Store.Name%</a>. Below is the summary of the order. <br /><br />Order Number: %Order.OrderNumber%<br />Order Details: <a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a><br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod%<br /><br />%Order.Product(s)%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderPlaced.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. Purchase Receipt for Order #%Order.OrderNumber%",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Order.CustomerFullName% (%Order.CustomerEmail%) has just placed an order from your store. Below is the summary of the order. <br /><br />Order Number: %Order.OrderNumber%<br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod%<br /><br />%Order.Product(s)%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "ShipmentSent.CustomerNotification",
-                                           Subject = "Your order from %Store.Name% has been shipped.",
-                                           Body = "<p><a href=\"%Store.URL%\"> %Store.Name%</a> <br /><br />Hello %Order.CustomerFullName%!, <br />Good news! You order has been shipped. <br />Order Number: %Order.OrderNumber%<br />Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a><br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod% <br /> <br /> Shipped Products: <br /> <br /> %Shipment.Product(s)%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Product.ProductReview",
-                                           Subject = "%Store.Name%. New product review.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />A new product review has been written for product \"%ProductReview.ProductName%\".</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "QuantityBelow.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. Quantity below notification. %Product.Name%",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Product.Name% (ID: %Product.ID%) low quantity. <br /><br />Quantity: %Product.StockQuantity%<br /></p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "QuantityBelow.AttributeCombination.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. Quantity below notification. %Product.Name%",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Product.Name% (ID: %Product.ID%) low quantity. <br />%AttributeCombination.Formatted%<br />Quantity: %AttributeCombination.StockQuantity%<br /></p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "ReturnRequestStatusChanged.CustomerNotification",
-                                           Subject = "%Store.Name%. Return request status was changed.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Customer.FullName%,<br />Your return request #%ReturnRequest.CustomNumber% status has been changed.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Service.EmailAFriend",
-                                           Subject = "%Store.Name%. Referred Item",
-                                           Body = "<p><a href=\"%Store.URL%\"> %Store.Name%</a> <br /><br />%EmailAFriend.Email% was shopping on %Store.Name% and wanted to share the following item with you. <br /><br /><b><a target=\"_blank\" href=\"%Product.ProductURLForCustomer%\">%Product.Name%</a></b> <br />%Product.ShortDescription% <br /><br />For more info click <a target=\"_blank\" href=\"%Product.ProductURLForCustomer%\">here</a> <br /><br /><br />%EmailAFriend.PersonalMessage%<br /><br />%Store.Name%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Wishlist.EmailAFriend",
-                                           Subject = "%Store.Name%. Wishlist",
-                                           Body = "<p><a href=\"%Store.URL%\"> %Store.Name%</a> <br /><br />%Wishlist.Email% was shopping on %Store.Name% and wanted to share a wishlist with you. <br /><br /><br />For more info click <a target=\"_blank\" href=\"%Wishlist.URLForCustomer%\">here</a> <br /><br /><br />%Wishlist.PersonalMessage%<br /><br />%Store.Name%</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "Customer.NewOrderNote",
-                                           Subject = "%Store.Name%. New order note has been added",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Customer.FullName%, <br />New order note has been added to your account:<br />\"%Order.NewNoteText%\".<br /><a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a></p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "RecurringPaymentCancelled.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. Recurring payment cancelled",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Customer.FullName% (%Customer.Email%) has just cancelled a recurring payment ID=%RecurringPayment.ID%.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderPlaced.VendorNotification",
-                                           Subject = "%Store.Name%. Order placed",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Customer.FullName% (%Customer.Email%) has just placed an order. <br /><br />Order Number: %Order.OrderNumber%<br />Date Ordered: %Order.CreatedOn%<br /><br />%Order.Product(s)%</p>",
-                                           //this template is disabled by default
-                                           IsActive = false,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                    new MessageTemplate
-                                        {
-                                           Name = "OrderRefunded.CustomerNotification",
-                                           Subject = "%Store.Name%. Order #%Order.OrderNumber% refunded",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Order.CustomerFullName%, <br />Thanks for buying from <a href=\"%Store.URL%\">%Store.Name%</a>. Order #%Order.OrderNumber% has been has been refunded. Please allow 7-14 days for the refund to be reflected in your account.<br /><br />Amount refunded: %Order.AmountRefunded%<br /><br />Below is the summary of the order. <br /><br />Order Number: %Order.OrderNumber%<br />Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a><br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod%<br /><br />%Order.Product(s)%</p>",
-                                           //this template is disabled by default
-                                           IsActive = false,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                    new MessageTemplate
-                                        {
-                                           Name = "OrderRefunded.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. Order #%Order.OrderNumber% refunded",
-                                           Body = "%Store.Name%. Order #%Order.OrderNumber% refunded', N'<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Order #%Order.OrderNumber% has been just refunded<br /><br />Amount refunded: %Order.AmountRefunded%<br /><br />Date Ordered: %Order.CreatedOn%</p>",
-                                           //this template is disabled by default
-                                           IsActive = false,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderPaid.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. Order #%Order.OrderNumber% paid",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Order #%Order.OrderNumber% has been just paid<br />Date Ordered: %Order.CreatedOn%</p>",
-                                           //this template is disabled by default
-                                           IsActive = false,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderPaid.CustomerNotification",
-                                           Subject = "%Store.Name%. Order #%Order.OrderNumber% paid",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Hello %Order.CustomerFullName%, <br />Thanks for buying from <a href=\"%Store.URL%\">%Store.Name%</a>. Order #%Order.OrderNumber% has been just paid. Below is the summary of the order. <br /><br />Order Number: %Order.OrderNumber%<br />Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a><br />Date Ordered: %Order.CreatedOn%<br /><br /><br /><br />Billing Address<br />%Order.BillingFirstName% %Order.BillingLastName%<br />%Order.BillingAddress1%<br />%Order.BillingCity% %Order.BillingZipPostalCode%<br />%Order.BillingStateProvince% %Order.BillingCountry%<br /><br /><br /><br />Shipping Address<br />%Order.ShippingFirstName% %Order.ShippingLastName%<br />%Order.ShippingAddress1%<br />%Order.ShippingCity% %Order.ShippingZipPostalCode%<br />%Order.ShippingStateProvince% %Order.ShippingCountry%<br /><br />Shipping Method: %Order.ShippingMethod%<br /><br />%Order.Product(s)%</p>",
-                                           //this template is disabled by default
-                                           IsActive = false,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "OrderPaid.VendorNotification",
-                                           Subject = "%Store.Name%. Order #%Order.OrderNumber% paid",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Order #%Order.OrderNumber% has been just paid. <br /><br />Order Number: %Order.OrderNumber%<br />Date Ordered: %Order.CreatedOn%<br /><br />%Order.Product(s)%</p>",
-                                           //this template is disabled by default
-                                           IsActive = false,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                       {
-                                           Name = "VendorAccountApply.StoreOwnerNotification",
-                                           Subject = "%Store.Name%. New vendor account submitted.",
-                                           Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />%Customer.FullName% (%Customer.Email%) has just submitted for a vendor account. Details are below:<br />Vendor name: %Vendor.Name%<br />Vendor email: %Vendor.Email%<br /><br />You can activate it in admin area.</p>",
-                                           IsActive = true,
-                                           EmailAccountId = eaGeneral.Id,
-                                       },
-                                   new MessageTemplate
-                                   {
-                                       Name = "VendorInformationChange.StoreOwnerNotification",
-                                       Subject = "%Store.Name%. Vendor information change.",
-                                       Body = "<p><a href=\"%Store.URL%\">%Store.Name%</a> <br /><br />Vendor %Vendor.Name% (%Vendor.Email%) has just changed information about itself.</p>",
-                                       IsActive = true,
-                                       EmailAccountId = eaGeneral.Id
-                                   }
-                               };
+            {
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.BlogCommentNotification,
+                    Subject = "%Store.Name%. New blog comment.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}A new blog comment has been created for blog post \"%BlogComment.BlogPostTitle%\".{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.BackInStockNotification,
+                    Subject = "%Store.Name%. Back in stock notification",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%,{Environment.NewLine}<br />{Environment.NewLine}Product <a target=\"_blank\" href=\"%BackInStockSubscription.ProductUrl%\">%BackInStockSubscription.ProductName%</a> is in stock.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.CustomerEmailValidationMessage,
+                    Subject = "%Store.Name%. Email validation",
+                    Body = $"<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}To activate your account <a href=\"%Customer.AccountActivationURL%\">click here</a>.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Store.Name%{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.CustomerEmailRevalidationMessage,
+                    Subject = "%Store.Name%. Email validation",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%!{Environment.NewLine}<br />{Environment.NewLine}To validate your new email address <a href=\"%Customer.EmailRevalidationURL%\">click here</a>.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Store.Name%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.PrivateMessageNotification,
+                    Subject = "%Store.Name%. You have received a new private message",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}You have received a new private message.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.CustomerPasswordRecoveryMessage,
+                    Subject = "%Store.Name%. Password recovery",
+                    Body = $"<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}To change your password <a href=\"%Customer.PasswordRecoveryURL%\">click here</a>.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Store.Name%{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.CustomerWelcomeMessage,
+                    Subject = "Welcome to %Store.Name%",
+                    Body = $"We welcome you to <a href=\"%Store.URL%\"> %Store.Name%</a>.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}You can now take part in the various services we have to offer you. Some of these services include:{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Permanent Cart - Any products added to your online cart remain there until you remove them, or check them out.{Environment.NewLine}<br />{Environment.NewLine}Address Book - We can now deliver your products to another address other than yours! This is perfect to send birthday gifts direct to the birthday-person themselves.{Environment.NewLine}<br />{Environment.NewLine}Order History - View your history of purchases that you have made with us.{Environment.NewLine}<br />{Environment.NewLine}Products Reviews - Share your opinions on products with our other customers.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}For help with any of our online services, please email the store-owner: <a href=\"mailto:%Store.Email%\">%Store.Email%</a>.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Note: This email address was provided on our registration page. If you own the email and did not register on our site, please send an email to <a href=\"mailto:%Store.Email%\">%Store.Email%</a>.{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewForumPostMessage,
+                    Subject = "%Store.Name%. New Post Notification.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}A new post has been created in the topic <a href=\"%Forums.TopicURL%\">\"%Forums.TopicName%\"</a> at <a href=\"%Forums.ForumURL%\">\"%Forums.ForumName%\"</a> forum.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Click <a href=\"%Forums.TopicURL%\">here</a> for more info.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Post author: %Forums.PostAuthor%{Environment.NewLine}<br />{Environment.NewLine}Post body: %Forums.PostBody%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewForumTopicMessage,
+                    Subject = "%Store.Name%. New Topic Notification.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}A new topic <a href=\"%Forums.TopicURL%\">\"%Forums.TopicName%\"</a> has been created at <a href=\"%Forums.ForumURL%\">\"%Forums.ForumName%\"</a> forum.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Click <a href=\"%Forums.TopicURL%\">here</a> for more info.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.GiftCardNotification,
+                    Subject = "%GiftCard.SenderName% has sent you a gift card for %Store.Name%",
+                    Body = $"<p>{Environment.NewLine}You have received a gift card for %Store.Name%{Environment.NewLine}</p>{Environment.NewLine}<p>{Environment.NewLine}Dear %GiftCard.RecipientName%,{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%GiftCard.SenderName% (%GiftCard.SenderEmail%) has sent you a %GiftCard.Amount% gift cart for <a href=\"%Store.URL%\"> %Store.Name%</a>{Environment.NewLine}</p>{Environment.NewLine}<p>{Environment.NewLine}You gift card code is %GiftCard.CouponCode%{Environment.NewLine}</p>{Environment.NewLine}<p>{Environment.NewLine}%GiftCard.Message%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.CustomerRegisteredNotification,
+                    Subject = "%Store.Name%. New customer registration",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}A new customer registered with your store. Below are the customer's details:{Environment.NewLine}<br />{Environment.NewLine}Full name: %Customer.FullName%{Environment.NewLine}<br />{Environment.NewLine}Email: %Customer.Email%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewReturnRequestStoreOwnerNotification,
+                    Subject = "%Store.Name%. New return request.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Customer.FullName% has just submitted a new return request. Details are below:{Environment.NewLine}<br />{Environment.NewLine}Request ID: %ReturnRequest.CustomNumber%{Environment.NewLine}<br />{Environment.NewLine}Product: %ReturnRequest.Product.Quantity% x Product: %ReturnRequest.Product.Name%{Environment.NewLine}<br />{Environment.NewLine}Reason for return: %ReturnRequest.Reason%{Environment.NewLine}<br />{Environment.NewLine}Requested action: %ReturnRequest.RequestedAction%{Environment.NewLine}<br />{Environment.NewLine}Customer comments:{Environment.NewLine}<br />{Environment.NewLine}%ReturnRequest.CustomerComment%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewReturnRequestCustomerNotification,
+                    Subject = "%Store.Name%. New return request.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%!{Environment.NewLine}<br />{Environment.NewLine}You have just submitted a new return request. Details are below:{Environment.NewLine}<br />{Environment.NewLine}Request ID: %ReturnRequest.CustomNumber%{Environment.NewLine}<br />{Environment.NewLine}Product: %ReturnRequest.Product.Quantity% x Product: %ReturnRequest.Product.Name%{Environment.NewLine}<br />{Environment.NewLine}Reason for return: %ReturnRequest.Reason%{Environment.NewLine}<br />{Environment.NewLine}Requested action: %ReturnRequest.RequestedAction%{Environment.NewLine}<br />{Environment.NewLine}Customer comments:{Environment.NewLine}<br />{Environment.NewLine}%ReturnRequest.CustomerComment%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewsCommentNotification,
+                    Subject = "%Store.Name%. New news comment.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}A new news comment has been created for news \"%NewsComment.NewsTitle%\".{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewsletterSubscriptionActivationMessage,
+                    Subject = "%Store.Name%. Subscription activation message.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%NewsLetterSubscription.ActivationUrl%\">Click here to confirm your subscription to our list.</a>{Environment.NewLine}</p>{Environment.NewLine}<p>{Environment.NewLine}If you received this email by mistake, simply delete it.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewsletterSubscriptionDeactivationMessage,
+                    Subject = "%Store.Name%. Subscription deactivation message.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%NewsLetterSubscription.DeactivationUrl%\">Click here to unsubscribe from our newsletter.</a>{Environment.NewLine}</p>{Environment.NewLine}<p>{Environment.NewLine}If you received this email by mistake, simply delete it.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewVatSubmittedStoreOwnerNotification,
+                    Subject = "%Store.Name%. New VAT number is submitted.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Customer.FullName% (%Customer.Email%) has just submitted a new VAT number. Details are below:{Environment.NewLine}<br />{Environment.NewLine}VAT number: %Customer.VatNumber%{Environment.NewLine}<br />{Environment.NewLine}VAT number status: %Customer.VatNumberStatus%{Environment.NewLine}<br />{Environment.NewLine}Received name: %VatValidationResult.Name%{Environment.NewLine}<br />{Environment.NewLine}Received address: %VatValidationResult.Address%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderCancelledCustomerNotification,
+                    Subject = "%Store.Name%. Your order cancelled",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%,{Environment.NewLine}<br />{Environment.NewLine}Your order has been cancelled. Below is the summary of the order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% %Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderCompletedCustomerNotification,
+                    Subject = "%Store.Name%. Your order completed",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%,{Environment.NewLine}<br />{Environment.NewLine}Your order has been completed. Below is the summary of the order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% %Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.ShipmentDeliveredCustomerNotification,
+                    Subject = "Your order from %Store.Name% has been delivered.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\"> %Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%,{Environment.NewLine}<br />{Environment.NewLine}Good news! You order has been delivered.{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% Delivered Products:{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Shipment.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderPlacedCustomerNotification,
+                    Subject = "Order receipt from %Store.Name%.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%,{Environment.NewLine}<br />{Environment.NewLine}Thanks for buying from <a href=\"%Store.URL%\">%Store.Name%</a>. Below is the summary of the order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% %Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderPlacedStoreOwnerNotification,
+                    Subject = "%Store.Name%. Purchase Receipt for Order #%Order.OrderNumber%",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Order.CustomerFullName% (%Order.CustomerEmail%) has just placed an order from your store. Below is the summary of the order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% %Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.ShipmentSentCustomerNotification,
+                    Subject = "Your order from %Store.Name% has been shipped.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\"> %Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%!,{Environment.NewLine}<br />{Environment.NewLine}Good news! You order has been shipped.{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% Shipped Products:{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Shipment.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.ProductReviewNotification,
+                    Subject = "%Store.Name%. New product review.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}A new product review has been written for product \"%ProductReview.ProductName%\".{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.QuantityBelowStoreOwnerNotification,
+                    Subject = "%Store.Name%. Quantity below notification. %Product.Name%",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Product.Name% (ID: %Product.ID%) low quantity.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Quantity: %Product.StockQuantity%{Environment.NewLine}<br />{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.QuantityBelowAttributeCombinationStoreOwnerNotification,
+                    Subject = "%Store.Name%. Quantity below notification. %Product.Name%",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Product.Name% (ID: %Product.ID%) low quantity.{Environment.NewLine}<br />{Environment.NewLine}%AttributeCombination.Formatted%{Environment.NewLine}<br />{Environment.NewLine}Quantity: %AttributeCombination.StockQuantity%{Environment.NewLine}<br />{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.ReturnRequestStatusChangedCustomerNotification,
+                    Subject = "%Store.Name%. Return request status was changed.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%,{Environment.NewLine}<br />{Environment.NewLine}Your return request #%ReturnRequest.CustomNumber% status has been changed.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.EmailAFriendMessage,
+                    Subject = "%Store.Name%. Referred Item",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\"> %Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%EmailAFriend.Email% was shopping on %Store.Name% and wanted to share the following item with you.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<b><a target=\"_blank\" href=\"%Product.ProductURLForCustomer%\">%Product.Name%</a></b>{Environment.NewLine}<br />{Environment.NewLine}%Product.ShortDescription%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}For more info click <a target=\"_blank\" href=\"%Product.ProductURLForCustomer%\">here</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%EmailAFriend.PersonalMessage%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Store.Name%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.WishlistToFriendMessage,
+                    Subject = "%Store.Name%. Wishlist",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\"> %Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Wishlist.Email% was shopping on %Store.Name% and wanted to share a wishlist with you.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}For more info click <a target=\"_blank\" href=\"%Wishlist.URLForCustomer%\">here</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Wishlist.PersonalMessage%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Store.Name%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewOrderNoteAddedCustomerNotification,
+                    Subject = "%Store.Name%. New order note has been added",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%,{Environment.NewLine}<br />{Environment.NewLine}New order note has been added to your account:{Environment.NewLine}<br />{Environment.NewLine}\"%Order.NewNoteText%\".{Environment.NewLine}<br />{Environment.NewLine}<a target=\"_blank\" href=\"%Order.OrderURLForCustomer%\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.RecurringPaymentCancelledStoreOwnerNotification,
+                    Subject = "%Store.Name%. Recurring payment cancelled",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%RecurringPayment.CancelAfterFailedPayment%) The last payment for the recurring payment ID=%RecurringPayment.ID% failed, so it was cancelled. endif% %if (!%RecurringPayment.CancelAfterFailedPayment%) %Customer.FullName% (%Customer.Email%) has just cancelled a recurring payment ID=%RecurringPayment.ID%. endif%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.RecurringPaymentCancelledCustomerNotification,
+                    Subject = "%Store.Name%. Recurring payment cancelled",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%,{Environment.NewLine}<br />{Environment.NewLine}%if (%RecurringPayment.CancelAfterFailedPayment%) It appears your credit card didn't go through for this recurring payment (<a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a>){Environment.NewLine}<br />{Environment.NewLine}So your subscription has been canceled. endif% %if (!%RecurringPayment.CancelAfterFailedPayment%) The recurring payment ID=%RecurringPayment.ID% was cancelled. endif%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.RecurringPaymentFailedCustomerNotification,
+                    Subject = "%Store.Name%. Last recurring payment failed",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Customer.FullName%,{Environment.NewLine}<br />{Environment.NewLine}It appears your credit card didn't go through for this recurring payment (<a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a>){Environment.NewLine}<br /> %if (%RecurringPayment.RecurringPaymentType% == \"Manual\") {Environment.NewLine}You can recharge balance and manually retry payment or cancel it on the order history page. endif% %if (%RecurringPayment.RecurringPaymentType% == \"Automatic\") {Environment.NewLine}You can recharge balance and wait, we will try to make the payment again, or you can cancel it on the order history page. endif%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderPlacedVendorNotification,
+                    Subject = "%Store.Name%. Order placed",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Customer.FullName% (%Customer.Email%) has just placed an order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    //this template is disabled by default
+                    IsActive = false,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderRefundedCustomerNotification,
+                    Subject = "%Store.Name%. Order #%Order.OrderNumber% refunded",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%,{Environment.NewLine}<br />{Environment.NewLine}Thanks for buying from <a href=\"%Store.URL%\">%Store.Name%</a>. Order #%Order.OrderNumber% has been has been refunded. Please allow 7-14 days for the refund to be reflected in your account.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Amount refunded: %Order.AmountRefunded%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Below is the summary of the order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br /{Environment.NewLine}>Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% %Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    //this template is disabled by default
+                    IsActive = false,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderRefundedStoreOwnerNotification,
+                    Subject = "%Store.Name%. Order #%Order.OrderNumber% refunded",
+                    Body = $"%Store.Name%. Order #%Order.OrderNumber% refunded', N'{Environment.NewLine}<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order #%Order.OrderNumber% has been just refunded{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Amount refunded: %Order.AmountRefunded%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}</p>{Environment.NewLine}",
+                    //this template is disabled by default
+                    IsActive = false,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderPaidStoreOwnerNotification,
+                    Subject = "%Store.Name%. Order #%Order.OrderNumber% paid",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order #%Order.OrderNumber% has been just paid{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}</p>{Environment.NewLine}",
+                    //this template is disabled by default
+                    IsActive = false,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderPaidCustomerNotification,
+                    Subject = "%Store.Name%. Order #%Order.OrderNumber% paid",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Hello %Order.CustomerFullName%,{Environment.NewLine}<br />{Environment.NewLine}Thanks for buying from <a href=\"%Store.URL%\">%Store.Name%</a>. Order #%Order.OrderNumber% has been just paid. Below is the summary of the order.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Order Details: <a href=\"%Order.OrderURLForCustomer%\" target=\"_blank\">%Order.OrderURLForCustomer%</a>{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Billing Address{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingFirstName% %Order.BillingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingCity% %Order.BillingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.BillingStateProvince% %Order.BillingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%if (%Order.Shippable%) Shipping Address{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingFirstName% %Order.ShippingLastName%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingAddress1%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingCity% %Order.ShippingZipPostalCode%{Environment.NewLine}<br />{Environment.NewLine}%Order.ShippingStateProvince% %Order.ShippingCountry%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Shipping Method: %Order.ShippingMethod%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine} endif% %Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    //this template is disabled by default
+                    IsActive = false,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.OrderPaidVendorNotification,
+                    Subject = "%Store.Name%. Order #%Order.OrderNumber% paid",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order #%Order.OrderNumber% has been just paid.{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Order Number: %Order.OrderNumber%{Environment.NewLine}<br />{Environment.NewLine}Date Ordered: %Order.CreatedOn%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Order.Product(s)%{Environment.NewLine}</p>{Environment.NewLine}",
+                    //this template is disabled by default
+                    IsActive = false,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.NewVendorAccountApplyStoreOwnerNotification,
+                    Subject = "%Store.Name%. New vendor account submitted.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}%Customer.FullName% (%Customer.Email%) has just submitted for a vendor account. Details are below:{Environment.NewLine}<br />{Environment.NewLine}Vendor name: %Vendor.Name%{Environment.NewLine}<br />{Environment.NewLine}Vendor email: %Vendor.Email%{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}You can activate it in admin area.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.VendorInformationChangeNotification,
+                    Subject = "%Store.Name%. Vendor information change.",
+                    Body = $"<p>{Environment.NewLine}<a href=\"%Store.URL%\">%Store.Name%</a>{Environment.NewLine}<br />{Environment.NewLine}<br />{Environment.NewLine}Vendor %Vendor.Name% (%Vendor.Email%) has just changed information about itself.{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.ContactUsMessage,
+                    Subject = "%Store.Name%. Contact us",
+                    Body = $"<p>{Environment.NewLine}%ContactUs.Body%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                },
+                new MessageTemplate
+                {
+                    Name = MessageTemplateSystemNames.ContactVendorMessage,
+                    Subject = "%Store.Name%. Contact us",
+                    Body = $"<p>{Environment.NewLine}%ContactUs.Body%{Environment.NewLine}</p>{Environment.NewLine}",
+                    IsActive = true,
+                    EmailAccountId = eaGeneral.Id,
+                }
+            };
             _messageTemplateRepository.Insert(messageTemplates);
         }
 
@@ -5611,7 +5765,7 @@ namespace Nop.Services.Installation
                                            DisplayOrder = 1,
                                            Published = true,
                                            Title = "Welcome to our store",
-                                           Body = "<p>Online shopping is the process consumers go through to purchase products or services over the Internet. You can edit this in the admin site.</p><p>If you have questions, see the <a href=\"http://www.nopcommerce.com/documentation.aspx\">Documentation</a>, or post in the <a href=\"http://www.nopcommerce.com/boards/\">Forums</a> at <a href=\"http://www.nopcommerce.com\">nopCommerce.com</a></p>",
+                                           Body = "<p>Online shopping is the process consumers go through to purchase products or services over the Internet. You can edit this in the admin site.</p><p>If you have questions, see the <a href=\"http://docs.nopcommerce.com/\">Documentation</a>, or post in the <a href=\"https://www.nopcommerce.com/boards/\">Forums</a> at <a href=\"https://www.nopcommerce.com\">nopCommerce.com</a></p>",
                                            TopicTemplateId = defaultTopicTemplate.Id
                                        },
                                    new Topic
@@ -5671,6 +5825,18 @@ namespace Nop.Services.Installation
                                            Body = "<p>Put your apply vendor instructions here. You can edit this in the admin site.</p>",
                                            TopicTemplateId = defaultTopicTemplate.Id
                                        },
+                                   new Topic
+                                       {
+                                           SystemName = "VendorTermsOfService",
+                                           IncludeInSitemap = false,
+                                           IsPasswordProtected = false,
+                                           IncludeInFooterColumn1 = true,
+                                           DisplayOrder = 1,
+                                           Published = true,
+                                           Title = "",
+                                           Body = "<p>Put your terms of service information here. You can edit this in the admin site.</p>",
+                                           TopicTemplateId = defaultTopicTemplate.Id
+                                       }
                                };
             _topicRepository.Insert(topics);
 
@@ -5690,7 +5856,7 @@ namespace Nop.Services.Installation
 
         }
 
-        protected virtual void InstallSettings()
+        protected virtual void InstallSettings(bool installSampleData)
         {
             var settingService = EngineContext.Current.Resolve<ISettingService>();
             settingService.SaveSetting(new PdfSettings
@@ -5707,17 +5873,21 @@ namespace Nop.Services.Installation
             {
                 UseSystemEmailForContactUsForm = true,
                 UseStoredProceduresIfSupported = true,
+                UseStoredProcedureForLoadingCategories = false,
                 SitemapEnabled = true,
                 SitemapIncludeCategories = true,
                 SitemapIncludeManufacturers = true,
                 SitemapIncludeProducts = false,
+                SitemapIncludeProductTags = false,
                 DisplayJavaScriptDisabledWarning = false,
                 UseFullTextSearch = false,
                 FullTextMode = FulltextSearchMode.ExactMatch,
                 Log404Errors = true,
                 BreadcrumbDelimiter = "/",
                 RenderXuaCompatible = false,
-                XuaCompatibleValue = "IE=edge"
+                XuaCompatibleValue = "IE=edge",
+                BbcodeEditorOpenLinksInNewWindow = false,
+                PopupForTermsOfServiceLinks = true
             });
 
             settingService.SaveSetting(new SeoSettings
@@ -5731,6 +5901,7 @@ namespace Nop.Services.Installation
                 ConvertNonWesternChars = false,
                 AllowUnicodeCharsInUrls = true,
                 CanonicalUrlsEnabled = false,
+                QueryStringInCanonicalUrlsEnabled = false,
                 WwwRequirement = WwwRequirement.NoMatter,
                 //we disable bundling out of the box because it requires a lot of server resources
                 EnableJsBundling = false,
@@ -5738,37 +5909,60 @@ namespace Nop.Services.Installation
                 TwitterMetaTags = true,
                 OpenGraphMetaTags = true,
                 ReservedUrlRecordSlugs = new List<string>
-                    {
-                        "admin",
-                        "install",
-                        "recentlyviewedproducts",
-                        "newproducts",
-                        "compareproducts",
-                        "clearcomparelist",
-                        "setproductreviewhelpfulness",
-                        "login",
-                        "register",
-                        "logout",
-                        "cart",
-                        "wishlist",
-                        "emailwishlist",
-                        "checkout",
-                        "onepagecheckout",
-                        "contactus",
-                        "passwordrecovery",
-                        "subscribenewsletter",
-                        "blog",
-                        "boards",
-                        "inboxupdate",
-                        "sentupdate",
-                        "news",
-                        "sitemap",
-                        "search",
-                        "config",
-                        "eucookielawaccept",
-                        "page-not-found"
-                    },
-                CustomHeadTags = "",
+                {
+                    "admin",
+                    "install",
+                    "recentlyviewedproducts",
+                    "newproducts",
+                    "compareproducts",
+                    "clearcomparelist",
+                    "setproductreviewhelpfulness",
+                    "login",
+                    "register",
+                    "logout",
+                    "cart",
+                    "wishlist",
+                    "emailwishlist",
+                    "checkout",
+                    "onepagecheckout",
+                    "contactus",
+                    "passwordrecovery",
+                    "subscribenewsletter",
+                    "blog",
+                    "boards",
+                    "inboxupdate",
+                    "sentupdate",
+                    "news",
+                    "sitemap",
+                    "search",
+                    "config",
+                    "eucookielawaccept",
+                    "page-not-found",
+                    //system names are not allowed (anyway they will cause a runtime error),
+                    "con",
+                    "lpt1",
+                    "lpt2",
+                    "lpt3",
+                    "lpt4",
+                    "lpt5",
+                    "lpt6",
+                    "lpt7",
+                    "lpt8",
+                    "lpt9",
+                    "com1",
+                    "com2",
+                    "com3",
+                    "com4",
+                    "com5",
+                    "com6",
+                    "com7",
+                    "com8",
+                    "com9",
+                    "null",
+                    "prn",
+                    "aux"
+                },
+                CustomHeadTags = ""
             });
 
             settingService.SaveSetting(new AdminAreaSettings
@@ -5777,7 +5971,10 @@ namespace Nop.Services.Installation
                 PopupGridPageSize = 10,
                 GridPageSizes = "10, 15, 20, 50, 100",
                 RichEditorAdditionalSettings = null,
-                RichEditorAllowJavaScript = false
+                RichEditorAllowJavaScript = false,
+                UseRichEditorInMessageTemplates = false,
+                UseIsoDateTimeConverterInJson = true,
+                UseNestedSetting = true
             });
 
 
@@ -5802,7 +5999,7 @@ namespace Nop.Services.Installation
                 AllowProductSorting = true,
                 AllowProductViewModeChanging = true,
                 DefaultViewMode = "grid",
-                ShowProductsFromSubcategories = true,
+                ShowProductsFromSubcategories = false,
                 ShowCategoryProductNumber = false,
                 ShowCategoryProductNumberIncludingSubcategories = false,
                 CategoryBreadcrumbEnabled = true,
@@ -5861,6 +6058,7 @@ namespace Nop.Services.Installation
                 ShowProductReviewsTabOnAccountPage = true,
                 ProductReviewsPageSizeOnAccountPage = 10,
                 ExportImportProductAttributes = true,
+                ExportImportProductSpecificationAttributes = true,
                 ExportImportUseDropdownlistsForAssociatedEntities = true
             });
 
@@ -5882,9 +6080,13 @@ namespace Nop.Services.Installation
                 CheckUsernameAvailabilityEnabled = false,
                 AllowUsersToChangeUsernames = false,
                 DefaultPasswordFormat = PasswordFormat.Hashed,
-                HashedPasswordFormat = "SHA1",
+                HashedPasswordFormat = "SHA512",
                 PasswordMinLength = 6,
+                UnduplicatedPasswordsNumber = 4,
                 PasswordRecoveryLinkDaysValid = 7,
+                PasswordLifetime = 90,
+                FailedPasswordAllowedAttempts = 0,
+                FailedPasswordLockoutMinutes = 30,
                 UserRegistrationType = UserRegistrationType.Standard,
                 AllowCustomersToUploadAvatars = false,
                 AvatarMaximumSizeBytes = 20000,
@@ -5919,6 +6121,7 @@ namespace Nop.Services.Installation
                 NewsletterBlockAllowToUnsubscribe = false,
                 OnlineCustomerMinutes = 20,
                 StoreLastVisitedPage = false,
+                StoreIpAddresses = true,
                 SuffixDeletedCustomers = false,
                 EnteringEmailTwice = false,
                 RequireRegistrationForDownloadableProducts = false,
@@ -5960,7 +6163,8 @@ namespace Nop.Services.Installation
                 DefaultPictureZoomEnabled = false,
                 DefaultImageQuality = 80,
                 MultipleThumbDirectories = false,
-                ImportProductImagesUsingHash = true
+                ImportProductImagesUsingHash = true,
+                AzureCacheControlHeader = string.Empty
             });
 
             settingService.SaveSetting(new StoreInformationSettings
@@ -5969,6 +6173,7 @@ namespace Nop.Services.Installation
                 DefaultStoreTheme = "DefaultClean",
                 AllowCustomerToSelectTheme = false,
                 DisplayMiniProfilerInPublicStore = false,
+                DisplayMiniProfilerForAdminOnly = false,
                 DisplayEuCookieLawWarning = false,
                 FacebookLink = "http://www.facebook.com/nopCommerce",
                 TwitterLink = "https://twitter.com/nopCommerce",
@@ -5979,8 +6184,8 @@ namespace Nop.Services.Installation
 
             settingService.SaveSetting(new ExternalAuthenticationSettings
             {
-                AutoRegisterEnabled = true,
-                RequireEmailValidation = false
+                RequireEmailValidation = false,
+                AllowCustomersToRemoveAssociations = true
             });
 
             settingService.SaveSetting(new RewardPointsSettings
@@ -5990,10 +6195,8 @@ namespace Nop.Services.Installation
                 PointsForRegistration = 0,
                 PointsForPurchases_Amount = 10,
                 PointsForPurchases_Points = 1,
-                PointsForPurchases_Awarded = OrderStatus.Complete,
                 ActivationDelay = 0,
                 ActivationDelayPeriodId = 0,
-                PointsForPurchases_Canceled = OrderStatus.Cancelled,
                 DisplayHowMuchWillBeEarned = true,
                 PointsAccumulatedForAllStores = true,
                 PageSize = 10
@@ -6030,6 +6233,7 @@ namespace Nop.Services.Installation
                 MaximumWishlistItems = 1000,
                 AllowOutOfStockItemsToBeAddedToWishlist = false,
                 MoveItemsFromWishlistToCart = true,
+                CartsSharedBetweenStores = false,
                 ShowProductImagesOnShoppingCart = true,
                 ShowProductImagesOnWishList = true,
                 ShowDiscountBox = true,
@@ -6066,10 +6270,17 @@ namespace Nop.Services.Installation
                 GeneratePdfInvoiceInCustomerLanguage = true,
                 AttachPdfInvoiceToOrderPaidEmail = false,
                 ReturnRequestsEnabled = true,
+                ReturnRequestsAllowFiles = false,
+                ReturnRequestsFileMaximumSize = 2048,
                 NumberOfDaysReturnRequestAvailable = 365,
                 MinimumOrderPlacementInterval = 30,
+                ActivateGiftCardsAfterCompletingOrder = false,
+                DeactivateGiftCardsAfterCancellingOrder = false,
                 DeactivateGiftCardsAfterDeletingOrder = false,
-                CompleteOrderWhenDelivered = true
+                CompleteOrderWhenDelivered = true,
+                CustomOrderNumberMask = "{ID}",
+                ExportWithProducts = true,
+                AllowAdminsToBuyCallForPriceProducts = true
             });
 
             settingService.SaveSetting(new SecuritySettings
@@ -6101,7 +6312,8 @@ namespace Nop.Services.Installation
                 HideShippingTotal = false,
                 ReturnValidOptionsIfThereAreAny = true,
                 BypassShippingMethodSelectionIfOnlyOne = false,
-                UseCubeRootMethod = true
+                UseCubeRootMethod = true,
+                ConsiderAssociatedProductsDimensions = true
             });
 
             settingService.SaveSetting(new PaymentSettings
@@ -6109,20 +6321,21 @@ namespace Nop.Services.Installation
                 ActivePaymentMethodSystemNames = new List<string>
                     {
                         "Payments.CheckMoneyOrder",
-                        "Payments.Manual",
-                        "Payments.PayInStore",
-                        "Payments.PurchaseOrder",
+                        "Payments.Manual"
                     },
                 AllowRePostingPayments = true,
                 BypassPaymentMethodSelectionIfOnlyOne = true,
-                ShowPaymentMethodDescriptions = true
+                ShowPaymentMethodDescriptions = true,
+                SkipPaymentInfoStepForRedirectionPaymentMethods = false,
+                CancelRecurringPaymentsAfterFailedPayment = false
             });
 
             settingService.SaveSetting(new TaxSettings
             {
                 TaxBasedOn = TaxBasedOn.BillingAddress,
+                TaxBasedOnPickupPointAddress = false,
                 TaxDisplayType = TaxDisplayType.ExcludingTax,
-                ActiveTaxProviderSystemName = "Tax.FixedRate",
+                ActiveTaxProviderSystemName = "Tax.FixedOrByCountryStateZip",
                 DefaultTaxAddressId = 0,
                 DisplayTaxSuffix = false,
                 DisplayTaxRates = false,
@@ -6161,6 +6374,8 @@ namespace Nop.Services.Installation
                 NotifyAboutNewBlogComments = false,
                 NumberOfTags = 15,
                 ShowHeaderRssUrl = false,
+                BlogCommentsMustBeApproved = false,
+                ShowBlogCommentsPerStore = false
             });
             settingService.SaveSetting(new NewsSettings
             {
@@ -6171,6 +6386,8 @@ namespace Nop.Services.Installation
                 MainPageNewsCount = 3,
                 NewsArchivePageSize = 10,
                 ShowHeaderRssUrl = false,
+                NewsCommentsMustBeApproved = false,
+                ShowNewsCommentsPerStore = false
             });
 
             settingService.SaveSetting(new ForumSettings
@@ -6217,6 +6434,7 @@ namespace Nop.Services.Installation
                 ShowVendorOnProductDetailsPage = true,
                 AllowCustomersToContactVendors = true,
                 AllowCustomersToApplyForVendorAccount = true,
+                TermsOfServiceEnabled = false,
                 AllowVendorsToEditInfo = false,
                 NotifyStoreOwnerAboutVendorInformationChange = true,
                 MaximumProductNumber = 3000,
@@ -6234,6 +6452,17 @@ namespace Nop.Services.Installation
             settingService.SaveSetting(new WidgetSettings
             {
                 ActiveWidgetSystemNames = new List<string> { "Widgets.NivoSlider" },
+            });
+
+            settingService.SaveSetting(new DisplayDefaultMenuItemSettings
+            {
+                DisplayHomePageMenuItem = !installSampleData,
+                DisplayNewProductsMenuItem = !installSampleData,
+                DisplayProductSearchMenuItem = !installSampleData,
+                DisplayCustomerInfoMenuItem = !installSampleData,
+                DisplayBlogMenuItem = !installSampleData,
+                DisplayForumsMenuItem = !installSampleData,
+                DisplayContactUsMenuItem = !installSampleData
             });
         }
 
@@ -6336,7 +6565,7 @@ namespace Nop.Services.Installation
             });
             var sa4 = new SpecificationAttribute
             {
-                Name = "Hardrive",
+                Name = "Hard drive",
                 DisplayOrder = 5,
             };
             sa4.SpecificationAttributeOptions.Add(new SpecificationAttributeOption
@@ -6436,7 +6665,7 @@ namespace Nop.Services.Installation
         {
             //pictures
             var pictureService = EngineContext.Current.Resolve<IPictureService>();
-            var sampleImagesPath = CommonHelper.MapPath("~/content/samples/");
+            var sampleImagesPath = GetSamplesPath();
 
 
 
@@ -6774,7 +7003,7 @@ namespace Nop.Services.Installation
         protected virtual void InstallManufacturers()
         {
             var pictureService = EngineContext.Current.Resolve<IPictureService>();
-            var sampleImagesPath = CommonHelper.MapPath("~/content/samples/");
+            var sampleImagesPath = GetSamplesPath();
 
             var manufacturerTemplateInGridAndLines =
                 _manufacturerTemplateRepository.Table.FirstOrDefault(pt => pt.Name == "Products in Grid or Lines");
@@ -6878,11 +7107,11 @@ namespace Nop.Services.Installation
 
             //pictures
             var pictureService = EngineContext.Current.Resolve<IPictureService>();
-            var sampleImagesPath = CommonHelper.MapPath("~/content/samples/");
+            var sampleImagesPath = GetSamplesPath();
 
             //downloads
             var downloadService = EngineContext.Current.Resolve<IDownloadService>();
-            var sampleDownloadsPath = CommonHelper.MapPath("~/content/samples/");
+            var sampleDownloadsPath = GetSamplesPath();
 
             //products
             var allProducts = new List<Product>();
@@ -7261,7 +7490,7 @@ namespace Nop.Services.Installation
                     //    AllowFiltering = false,
                     //    ShowOnProductPage = true,
                     //    DisplayOrder = 4,
-                    //    SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hardrive").SpecificationAttributeOptions.Single(sao => sao.Name == "160 GB")
+                    //    SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hard drive").SpecificationAttributeOptions.Single(sao => sao.Name == "160 GB")
                     //}
                 }
             };
@@ -7348,7 +7577,7 @@ namespace Nop.Services.Installation
                         AllowFiltering = false,
                         ShowOnProductPage = true,
                         DisplayOrder = 4,
-                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hardrive").SpecificationAttributeOptions.Single(sao => sao.Name == "1 TB")
+                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hard drive").SpecificationAttributeOptions.Single(sao => sao.Name == "1 TB")
                     }
                 }
             };
@@ -7431,7 +7660,7 @@ namespace Nop.Services.Installation
                         AllowFiltering = false,
                         ShowOnProductPage = true,
                         DisplayOrder = 4,
-                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hardrive").SpecificationAttributeOptions.Single(sao => sao.Name == "128 GB")
+                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hard drive").SpecificationAttributeOptions.Single(sao => sao.Name == "128 GB")
                     }
                 }
             };
@@ -7521,7 +7750,7 @@ namespace Nop.Services.Installation
                         AllowFiltering = false,
                         ShowOnProductPage = true,
                         DisplayOrder = 4,
-                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hardrive").SpecificationAttributeOptions.Single(sao => sao.Name == "128 GB")
+                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hard drive").SpecificationAttributeOptions.Single(sao => sao.Name == "128 GB")
                     }
                 }
             };
@@ -7547,7 +7776,7 @@ namespace Nop.Services.Installation
                 Name = "HP Envy 6-1180ca 15.6-Inch Sleekbook",
                 Sku = "HP_ESB_15",
                 ShortDescription = "HP ENVY 6-1202ea Ultrabook Beats Audio, 3rd generation Intel® CoreTM i7-3517U processor, 8GB RAM, 500GB HDD, Microsoft Windows 8, AMD Radeon HD 8750M (2 GB DDR3 dedicated)",
-                FullDescription = "The UltrabookTM that's up for anything. Thin and light, the HP ENVY is the large screen UltrabookTM with Beats AudioTM. With a soft-touch base that makes it easy to grab and go, it's a laptop that's up for anything.<br><br><b>Features</b><br><br>- Windows 8 or other operating systems available<br><br><b>Top performance. Stylish design. Take notice.</b><br><br>- At just 19.8 mm (0.78 in) thin, the HP ENVY UltrabookTM is slim and light enough to take anywhere. It's the laptop that gets you noticed with the power to get it done.<br>- With an eye-catching metal design, it's a laptop that you want to carry with you. The soft-touch, slip-resistant base gives you the confidence to carry it with ease.<br><br><b>More entertaining. More gaming. More fun.</b><br><br>- Own the UltrabookTM with Beats AudioTM, dual speakers, a subwoofer, and an awesome display. Your music, movies and photo slideshows will always look and sound their best.<br>- Tons of video memory let you experience incredible gaming and multimedia without slowing down. Create and edit videos in a flash. And enjoy more of what you love to the fullest.<br>- The HP ENVY UltrabookTM is loaded with the ports you'd expect on a world-class laptop, but on a Sleekbook instead. Like HDMI, USB, RJ-45, and a headphone jack. You get all the right connections without compromising size.<br><br><b>Only from HP.</b><br><br>- Life heats up. That's why there's HP CoolSense technology, which automatically adjusts your notebook's temperature based on usage and conditions. It stays cool. You stay comfortable.<br>- With HP ProtectSmart, your notebook's data stays safe from accidental bumps and bruises. It senses motion and plans ahead, stopping your hard drive and protecting your entire digital life.<br>- Keep playing even in dimly lit rooms or on red eye flights. The optional backlit keyboard[1] is full-size so you don't compromise comfort. Backlit keyboard. Another bright idea.<br><br><b>",
+                FullDescription = "The UltrabookTM that's up for anything. Thin and light, the HP ENVY is the large screen UltrabookTM with Beats AudioTM. With a soft-touch base that makes it easy to grab and go, it's a laptop that's up for anything.<br /><br /><b>Features</b><br /><br />- Windows 8 or other operating systems available<br /><br /><b>Top performance. Stylish design. Take notice.</b><br /><br />- At just 19.8 mm (0.78 in) thin, the HP ENVY UltrabookTM is slim and light enough to take anywhere. It's the laptop that gets you noticed with the power to get it done.<br />- With an eye-catching metal design, it's a laptop that you want to carry with you. The soft-touch, slip-resistant base gives you the confidence to carry it with ease.<br /><br /><b>More entertaining. More gaming. More fun.</b><br /><br />- Own the UltrabookTM with Beats AudioTM, dual speakers, a subwoofer, and an awesome display. Your music, movies and photo slideshows will always look and sound their best.<br />- Tons of video memory let you experience incredible gaming and multimedia without slowing down. Create and edit videos in a flash. And enjoy more of what you love to the fullest.<br />- The HP ENVY UltrabookTM is loaded with the ports you'd expect on a world-class laptop, but on a Sleekbook instead. Like HDMI, USB, RJ-45, and a headphone jack. You get all the right connections without compromising size.<br /><br /><b>Only from HP.</b><br /><br />- Life heats up. That's why there's HP CoolSense technology, which automatically adjusts your notebook's temperature based on usage and conditions. It stays cool. You stay comfortable.<br />- With HP ProtectSmart, your notebook's data stays safe from accidental bumps and bruises. It senses motion and plans ahead, stopping your hard drive and protecting your entire digital life.<br />- Keep playing even in dimly lit rooms or on red eye flights. The optional backlit keyboard[1] is full-size so you don't compromise comfort. Backlit keyboard. Another bright idea.<br /><br />",
                 ProductTemplateId = productTemplateSimple.Id,
                 //SeName = "hp-pavilion-g60-230us-160-inch-laptop",
                 AllowCustomerReviews = true,
@@ -7614,7 +7843,7 @@ namespace Nop.Services.Installation
                         AllowFiltering = false,
                         ShowOnProductPage = true,
                         DisplayOrder = 4,
-                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hardrive").SpecificationAttributeOptions.Single(sao => sao.Name == "500 GB")
+                        SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hard drive").SpecificationAttributeOptions.Single(sao => sao.Name == "500 GB")
                     }
                 }
             };
@@ -7684,20 +7913,6 @@ namespace Nop.Services.Installation
                         DisplayOrder = 2,
                         SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "CPU Type").SpecificationAttributeOptions.Single(sao => sao.Name == "Intel Core i7")
                     }
-                    //new ProductSpecificationAttribute
-                    //{
-                    //    AllowFiltering = true,
-                    //    ShowOnProductPage = true,
-                    //    DisplayOrder = 3,
-                    //    SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Memory").SpecificationAttributeOptions.Single(sao => sao.Name == "1 GB")
-                    //},
-                    //new ProductSpecificationAttribute
-                    //{
-                    //    AllowFiltering = false,
-                    //    ShowOnProductPage = true,
-                    //    DisplayOrder = 4,
-                    //    SpecificationAttributeOption = _specificationAttributeRepository.Table.Single(sa => sa.Name == "Hardrive").SpecificationAttributeOptions.Single(sao => sao.Name == "250 GB")
-                    //}
                 }
             };
             allProducts.Add(productLenovoThinkpad);
@@ -8127,7 +8342,7 @@ namespace Nop.Services.Installation
                 Name = "HTC One M8 Android L 5.0 Lollipop",
                 Sku = "M8_HTC_5L",
                 ShortDescription = "HTC - One (M8) 4G LTE Cell Phone with 32GB Memory - Gunmetal (Sprint)",
-                FullDescription = "<p><b>HTC One (M8) Cell Phone for Sprint:</b> With its brushed-metal design and wrap-around unibody frame, the HTC One (M8) is designed to fit beautifully in your hand. It's fun to use with amped up sound and a large Full HD touch screen, and intuitive gesture controls make it seem like your phone almost knows what you need before you do. <br><br>Sprint Easy Pay option available in store.</p>",
+                FullDescription = "<p><b>HTC One (M8) Cell Phone for Sprint:</b> With its brushed-metal design and wrap-around unibody frame, the HTC One (M8) is designed to fit beautifully in your hand. It's fun to use with amped up sound and a large Full HD touch screen, and intuitive gesture controls make it seem like your phone almost knows what you need before you do. <br /><br />Sprint Easy Pay option available in store.</p>",
                 ProductTemplateId = productTemplateSimple.Id,
                 //SeName = "blackberry-bold-9000-phone-black-att",
                 AllowCustomerReviews = true,
@@ -8633,8 +8848,7 @@ namespace Nop.Services.Installation
                 Name = "adidas Consortium Campus 80s Running Shoes",
                 Sku = "AD_C80_RS",
                 ShortDescription = "adidas Consortium Campus 80s Primeknit Light Maroon/Running Shoes",
-                FullDescription =
-                    "<p>One of three colorways of the adidas Consortium Campus 80s Primeknit set to drop alongside each other. This pair comes in light maroon and running white. Featuring a maroon-based primeknit upper with white accents. A limited release, look out for these at select adidas Consortium accounts worldwide.</p>",
+                FullDescription = "<p>One of three colorways of the adidas Consortium Campus 80s Primeknit set to drop alongside each other. This pair comes in light maroon and running white. Featuring a maroon-based primeknit upper with white accents. A limited release, look out for these at select adidas Consortium accounts worldwide.</p>",
                 ProductTemplateId = productTemplateSimple.Id,
                 //SeName = "etnies-mens-digit-sneaker",
                 AllowCustomerReviews = true,
@@ -8799,8 +9013,7 @@ namespace Nop.Services.Installation
                 Name = "Nike SB Zoom Stefan Janoski \"Medium Mint\"",
                 Sku = "NK_ZSJ_MM",
                 ShortDescription = "Nike SB Zoom Stefan Janoski Dark Grey Medium Mint Teal ...",
-                FullDescription =
-                    "The newly Nike SB Zoom Stefan Janoski gets hit with a \"Medium Mint\" accents that sits atop a Dark Grey suede. Expected to drop in October.",
+                FullDescription = "The newly Nike SB Zoom Stefan Janoski gets hit with a \"Medium Mint\" accents that sits atop a Dark Grey suede. Expected to drop in October.",
                 ProductTemplateId = productTemplateSimple.Id,
                 //SeName = "v-blue-juniors-cuffed-denim-short-with-rhinestones",
                 AllowCustomerReviews = true,
@@ -10568,6 +10781,8 @@ namespace Nop.Services.Installation
 
             #endregion
 
+            #region  Reviews
+
             //reviews
             var random = new Random();
             foreach (var product in allProducts)
@@ -10588,7 +10803,7 @@ namespace Nop.Services.Installation
                     StoreId = defaultStore.Id,
                     IsApproved = true,
                     Title = "Some sample review",
-                    ReviewText = string.Format("This sample review is for the {0}. I've been waiting for this product to be available. It is priced just right.", product.Name),
+                    ReviewText = $"This sample review is for the {product.Name}. I've been waiting for this product to be available. It is priced just right.",
                     //random (4 or 5)
                     Rating = rating,
                     HelpfulYesTotal = 0,
@@ -10600,6 +10815,26 @@ namespace Nop.Services.Installation
 
             }
             _productRepository.Update(allProducts);
+
+            #endregion
+
+            #region Stock quantity history
+
+            foreach (var product in allProducts)
+            {
+                if (product.StockQuantity > 0)
+                    _stockQuantityHistoryRepository.Insert(new StockQuantityHistory
+                    {
+                        ProductId = product.Id,
+                        WarehouseId = product.WarehouseId > 0 ? (int?)product.WarehouseId : null,
+                        QuantityAdjustment = product.StockQuantity,
+                        StockQuantity = product.StockQuantity,
+                        Message = "The stock quantity has been edited",
+                        CreatedOnUtc = DateTime.UtcNow
+                    });
+            }
+
+            #endregion
         }
 
         protected virtual void InstallForums()
@@ -10692,6 +10927,7 @@ namespace Nop.Services.Installation
         protected virtual void InstallBlogPosts(string defaultUserEmail)
         {
             var defaultLanguage = _languageRepository.Table.FirstOrDefault();
+
             var blogPosts = new List<BlogPost>
                                 {
                                     new BlogPost
@@ -10700,7 +10936,7 @@ namespace Nop.Services.Installation
                                              Language = defaultLanguage,
                                              Title = "How a blog can help your growing e-Commerce business",
                                              BodyOverview = "<p>When you start an online business, your main aim is to sell the products, right? As a business owner, you want to showcase your store to more audience. So, you decide to go on social media, why? Because everyone is doing it, then why shouldn&rsquo;t you? It is tempting as everyone is aware of the hype that it is the best way to market your brand.</p><p>Do you know having a blog for your online store can be very helpful? Many businesses do not understand the importance of having a blog because they don&rsquo;t have time to post quality content.</p><p>Today, we will talk about how a blog can play an important role for the growth of your e-Commerce business. Later, we will also discuss some tips that will be helpful to you for writing business related blog posts.</p>",
-                                             Body = "<p>When you start an online business, your main aim is to sell the products, right? As a business owner, you want to showcase your store to more audience. So, you decide to go on social media, why? Because everyone is doing it, then why shouldn&rsquo;t you? It is tempting as everyone is aware of the hype that it is the best way to market your brand.</p><p>Do you know having a blog for your online store can be very helpful? Many businesses do not understand the importance of having a blog because they don&rsquo;t have time to post quality content.</p><p>Today, we will talk about how a blog can play an important role for the growth of your e-Commerce business. Later, we will also discuss some tips that will be helpful to you for writing business related blog posts.</p><h3>1) Blog is useful in educating your customers</h3><p>Blogging is one of the best way by which you can educate your customers about your products/services that you offer. This helps you as a business owner to bring more value to your brand. When you provide useful information to the customers about your products, they are more likely to buy products from you. You can use your blog for providing tutorials in regard to the use of your products.</p><p><strong>For example:</strong> If you have an online store that offers computer parts. You can write tutorials about how to build a computer or how to make your computer&rsquo;s performance better. While talking about these things, you can mention products in the tutorials and provide link to your products within the blog post from your website. Your potential customers might get different ideas of using your product and will likely to buy products from your online store.</p><h3>2) Blog helps your business in Search Engine Optimization (SEO)</h3><p>Blog posts create more internal links to your website which helps a lot in SEO. Blog is a great way to have quality content on your website related to your products/services which is indexed by all major search engines like Google, Bing and Yahoo. The more original content you write in your blog post, the better ranking you will get in search engines. SEO is an on-going process and posting blog posts regularly keeps your site active all the time which is beneficial when it comes to search engine optimization.</p><p><strong>For example:</strong> Let&rsquo;s say you sell &ldquo;Sony Television Model XYZ&rdquo; and you regularly publish blog posts about your product. Now, whenever someone searches for &ldquo;Sony Television Model XYZ&rdquo;, Google will crawl on your website knowing that you have something to do with this particular product. Hence, your website will show up on the search result page whenever this item is being searched.</p><h3>3) Blog helps in boosting your sales by convincing the potential customers to buy</h3><p>If you own an online business, there are so many ways you can share different stories with your audience in regard your products/services that you offer. Talk about how you started your business, share stories that educate your audience about what&rsquo;s new in your industry, share stories about how your product/service was beneficial to someone or share anything that you think your audience might find interesting (it does not have to be related to your product). This kind of blogging shows that you are an expert in your industry and interested in educating your audience. It sets you apart in the competitive market. This gives you an opportunity to showcase your expertise by educating the visitors and it can turn your audience into buyers.</p><p><strong>Fun Fact:</strong> Did you know that 92% of companies who decided to blog acquired customers through their blog?</p><p><a href=\"http://www.nopcommerce.com/\">nopCommerce</a> is great e-Commerce solution that also offers a variety of CMS features including blog. A store owner has full access for managing the blog posts and related comments.</p>",
+                                             Body = "<p>When you start an online business, your main aim is to sell the products, right? As a business owner, you want to showcase your store to more audience. So, you decide to go on social media, why? Because everyone is doing it, then why shouldn&rsquo;t you? It is tempting as everyone is aware of the hype that it is the best way to market your brand.</p><p>Do you know having a blog for your online store can be very helpful? Many businesses do not understand the importance of having a blog because they don&rsquo;t have time to post quality content.</p><p>Today, we will talk about how a blog can play an important role for the growth of your e-Commerce business. Later, we will also discuss some tips that will be helpful to you for writing business related blog posts.</p><h3>1) Blog is useful in educating your customers</h3><p>Blogging is one of the best way by which you can educate your customers about your products/services that you offer. This helps you as a business owner to bring more value to your brand. When you provide useful information to the customers about your products, they are more likely to buy products from you. You can use your blog for providing tutorials in regard to the use of your products.</p><p><strong>For example:</strong> If you have an online store that offers computer parts. You can write tutorials about how to build a computer or how to make your computer&rsquo;s performance better. While talking about these things, you can mention products in the tutorials and provide link to your products within the blog post from your website. Your potential customers might get different ideas of using your product and will likely to buy products from your online store.</p><h3>2) Blog helps your business in Search Engine Optimization (SEO)</h3><p>Blog posts create more internal links to your website which helps a lot in SEO. Blog is a great way to have quality content on your website related to your products/services which is indexed by all major search engines like Google, Bing and Yahoo. The more original content you write in your blog post, the better ranking you will get in search engines. SEO is an on-going process and posting blog posts regularly keeps your site active all the time which is beneficial when it comes to search engine optimization.</p><p><strong>For example:</strong> Let&rsquo;s say you sell &ldquo;Sony Television Model XYZ&rdquo; and you regularly publish blog posts about your product. Now, whenever someone searches for &ldquo;Sony Television Model XYZ&rdquo;, Google will crawl on your website knowing that you have something to do with this particular product. Hence, your website will show up on the search result page whenever this item is being searched.</p><h3>3) Blog helps in boosting your sales by convincing the potential customers to buy</h3><p>If you own an online business, there are so many ways you can share different stories with your audience in regard your products/services that you offer. Talk about how you started your business, share stories that educate your audience about what&rsquo;s new in your industry, share stories about how your product/service was beneficial to someone or share anything that you think your audience might find interesting (it does not have to be related to your product). This kind of blogging shows that you are an expert in your industry and interested in educating your audience. It sets you apart in the competitive market. This gives you an opportunity to showcase your expertise by educating the visitors and it can turn your audience into buyers.</p><p><strong>Fun Fact:</strong> Did you know that 92% of companies who decided to blog acquired customers through their blog?</p><p><a href=\"https://www.nopcommerce.com/\">nopCommerce</a> is great e-Commerce solution that also offers a variety of CMS features including blog. A store owner has full access for managing the blog posts and related comments.</p>",
                                              Tags = "e-commerce, blog, moey",
                                              CreatedOnUtc = DateTime.UtcNow,
                                         },
@@ -10710,7 +10946,7 @@ namespace Nop.Services.Installation
                                              Language = defaultLanguage,
                                              Title = "Why your online store needs a wish list",
                                              BodyOverview = "<p>What comes to your mind, when you hear the term&rdquo; wish list&rdquo;? The application of this feature is exactly how it sounds like: a list of things that you wish to get. As an online store owner, would you like your customers to be able to save products in a wish list so that they review or buy them later? Would you like your customers to be able to share their wish list with friends and family for gift giving?</p><p>Offering your customers a feature of wish list as part of shopping cart is a great way to build loyalty to your store site. Having the feature of wish list on a store site allows online businesses to engage with their customers in a smart way as it allows the shoppers to create a list of what they desire and their preferences for future purchase.</p>",
-                                             Body = "<p>What comes to your mind, when you hear the term&rdquo; wish list&rdquo;? The application of this feature is exactly how it sounds like: a list of things that you wish to get. As an online store owner, would you like your customers to be able to save products in a wish list so that they review or buy them later? Would you like your customers to be able to share their wish list with friends and family for gift giving?</p><p>Offering your customers a feature of wish list as part of shopping cart is a great way to build loyalty to your store site. Having the feature of wish list on a store site allows online businesses to engage with their customers in a smart way as it allows the shoppers to create a list of what they desire and their preferences for future purchase.</p><p>Does every e-Commerce store needs a wish list? The answer to this question in most cases is yes, because of the following reasons:</p><p><strong>Understanding the needs of your customers</strong> - A wish list is a great way to know what is in your customer&rsquo;s mind. Try to think the purchase history as a small portion of the customer&rsquo;s preferences. But, the wish list is like a wide open door that can give any online business a lot of valuable information about their customer and what they like or desire.</p><p><strong>Shoppers like to share their wish list with friends and family</strong> - Providing your customers a way to email their wish list to their friends and family is a pleasant way to make online shopping enjoyable for the shoppers. It is always a good idea to make the wish list sharable by a unique link so that it can be easily shared though different channels like email or on social media sites.</p><p><strong>Wish list can be a great marketing tool</strong> &ndash; Another way to look at wish list is a great marketing tool because it is extremely targeted and the recipients are always motivated to use it. For example: when your younger brother tells you that his wish list is on a certain e-Commerce store. What is the first thing you are going to do? You are most likely to visit the e-Commerce store, check out the wish list and end up buying something for your younger brother.</p><p>So, how a wish list is a marketing tool? The reason is quite simple, it introduce your online store to new customers just how it is explained in the above example.</p><p><strong>Encourage customers to return to the store site</strong> &ndash; Having a feature of wish list on the store site can increase the return traffic because it encourages customers to come back and buy later. Allowing the customers to save the wish list to their online accounts gives them a reason return to the store site and login to the account at any time to view or edit the wish list items.</p><p><strong>Wish list can be used for gifts for different occasions like weddings or birthdays. So, what kind of benefits a gift-giver gets from a wish list?</strong></p><ul><li>It gives them a surety that they didn&rsquo;t buy a wrong gift</li><li>It guarantees that the recipient will like the gift</li><li>It avoids any awkward moments when the recipient unwraps the gift and as a gift-giver you got something that the recipient do not want</li></ul><p><strong>Wish list is a great feature to have on a store site &ndash; So, what kind of benefits a business owner gets from a wish list</strong></p><ul><li>It is a great way to advertise an online store as many people do prefer to shop where their friend or family shop online</li><li>It allows the current customers to return to the store site and open doors for the new customers</li><li>It allows store admins to track what&rsquo;s in customers wish list and run promotions accordingly to target specific customer segments</li></ul><p><a href=\"http://www.nopcommerce.com/\">nopCommerce</a> offers the feature of wish list that allows customers to create a list of products that they desire or planning to buy in future.</p>",
+                                             Body = "<p>What comes to your mind, when you hear the term&rdquo; wish list&rdquo;? The application of this feature is exactly how it sounds like: a list of things that you wish to get. As an online store owner, would you like your customers to be able to save products in a wish list so that they review or buy them later? Would you like your customers to be able to share their wish list with friends and family for gift giving?</p><p>Offering your customers a feature of wish list as part of shopping cart is a great way to build loyalty to your store site. Having the feature of wish list on a store site allows online businesses to engage with their customers in a smart way as it allows the shoppers to create a list of what they desire and their preferences for future purchase.</p><p>Does every e-Commerce store needs a wish list? The answer to this question in most cases is yes, because of the following reasons:</p><p><strong>Understanding the needs of your customers</strong> - A wish list is a great way to know what is in your customer&rsquo;s mind. Try to think the purchase history as a small portion of the customer&rsquo;s preferences. But, the wish list is like a wide open door that can give any online business a lot of valuable information about their customer and what they like or desire.</p><p><strong>Shoppers like to share their wish list with friends and family</strong> - Providing your customers a way to email their wish list to their friends and family is a pleasant way to make online shopping enjoyable for the shoppers. It is always a good idea to make the wish list sharable by a unique link so that it can be easily shared though different channels like email or on social media sites.</p><p><strong>Wish list can be a great marketing tool</strong> &ndash; Another way to look at wish list is a great marketing tool because it is extremely targeted and the recipients are always motivated to use it. For example: when your younger brother tells you that his wish list is on a certain e-Commerce store. What is the first thing you are going to do? You are most likely to visit the e-Commerce store, check out the wish list and end up buying something for your younger brother.</p><p>So, how a wish list is a marketing tool? The reason is quite simple, it introduce your online store to new customers just how it is explained in the above example.</p><p><strong>Encourage customers to return to the store site</strong> &ndash; Having a feature of wish list on the store site can increase the return traffic because it encourages customers to come back and buy later. Allowing the customers to save the wish list to their online accounts gives them a reason return to the store site and login to the account at any time to view or edit the wish list items.</p><p><strong>Wish list can be used for gifts for different occasions like weddings or birthdays. So, what kind of benefits a gift-giver gets from a wish list?</strong></p><ul><li>It gives them a surety that they didn&rsquo;t buy a wrong gift</li><li>It guarantees that the recipient will like the gift</li><li>It avoids any awkward moments when the recipient unwraps the gift and as a gift-giver you got something that the recipient do not want</li></ul><p><strong>Wish list is a great feature to have on a store site &ndash; So, what kind of benefits a business owner gets from a wish list</strong></p><ul><li>It is a great way to advertise an online store as many people do prefer to shop where their friend or family shop online</li><li>It allows the current customers to return to the store site and open doors for the new customers</li><li>It allows store admins to track what&rsquo;s in customers wish list and run promotions accordingly to target specific customer segments</li></ul><p><a href=\"https://www.nopcommerce.com/\">nopCommerce</a> offers the feature of wish list that allows customers to create a list of products that they desire or planning to buy in future.</p>",
                                              Tags = "e-commerce, nopCommerce, sample tag, money",
                                              CreatedOnUtc = DateTime.UtcNow.AddSeconds(1),
                                         },
@@ -10734,6 +10970,12 @@ namespace Nop.Services.Installation
             var defaultCustomer = _customerRepository.Table.FirstOrDefault(x => x.Email == defaultUserEmail);
             if (defaultCustomer == null)
                 throw new Exception("Cannot load default customer");
+
+            //default store
+            var defaultStore = _storeRepository.Table.FirstOrDefault();
+            if (defaultStore == null)
+                throw new Exception("No default store could be loaded");
+
             foreach (var blogPost in blogPosts)
             {
                 blogPost.BlogComments.Add(new BlogComment
@@ -10741,11 +10983,10 @@ namespace Nop.Services.Installation
                     BlogPostId = blogPost.Id,
                     CustomerId = defaultCustomer.Id,
                     CommentText = "This is a sample comment for this blog post",
+                    IsApproved = true,
+                    StoreId = defaultStore.Id,
                     CreatedOnUtc = DateTime.UtcNow
                 });
-                //update totals
-                blogPost.CommentCount = blogPost.BlogComments.Count;
-
             }
             _blogPostRepository.Update(blogPosts);
         }
@@ -10753,6 +10994,7 @@ namespace Nop.Services.Installation
         protected virtual void InstallNews(string defaultUserEmail)
         {
             var defaultLanguage = _languageRepository.Table.FirstOrDefault();
+
             var news = new List<NewsItem>
                                 {
                                     new NewsItem
@@ -10806,6 +11048,12 @@ namespace Nop.Services.Installation
             var defaultCustomer = _customerRepository.Table.FirstOrDefault(x => x.Email == defaultUserEmail);
             if (defaultCustomer == null)
                 throw new Exception("Cannot load default customer");
+
+            //default store
+            var defaultStore = _storeRepository.Table.FirstOrDefault();
+            if (defaultStore == null)
+                throw new Exception("No default store could be loaded");
+
             foreach (var newsItem in news)
             {
                 newsItem.NewsComments.Add(new NewsComment
@@ -10814,11 +11062,10 @@ namespace Nop.Services.Installation
                     CustomerId = defaultCustomer.Id,
                     CommentTitle = "Sample comment title",
                     CommentText = "This is a sample comment...",
+                    IsApproved = true,
+                    StoreId = defaultStore.Id,
                     CreatedOnUtc = DateTime.UtcNow
                 });
-                //update totals
-                newsItem.CommentCount = newsItem.NewsComments.Count;
-
             }
             _newsItemRepository.Update(news);
         }
@@ -11207,6 +11454,12 @@ namespace Nop.Services.Installation
                 },
                 new ActivityLogType
                 {
+                    SystemKeyword = "DeletePlugin",
+                    Enabled = true,
+                    Name = "Delete a plugin"
+                },
+                new ActivityLogType
+                {
                     SystemKeyword = "DeleteProduct",
                     Enabled = true,
                     Name = "Delete a product"
@@ -11252,6 +11505,12 @@ namespace Nop.Services.Installation
                     SystemKeyword = "DeleteStore",
                     Enabled = true,
                     Name = "Delete a store"
+                },
+                new ActivityLogType
+                {
+                    SystemKeyword = "DeleteSystemLog",
+                    Enabled = true,
+                    Name = "Delete system log"
                 },
                 new ActivityLogType
                 {
@@ -11525,6 +11784,30 @@ namespace Nop.Services.Installation
                 },
                 new ActivityLogType
                 {
+                    SystemKeyword = "ImportCategories",
+                    Enabled = true,
+                    Name = "Categories were imported"
+                },
+                new ActivityLogType
+                {
+                    SystemKeyword = "ImportManufacturers",
+                    Enabled = true,
+                    Name = "Manufacturers were imported"
+                },
+                new ActivityLogType
+                {
+                    SystemKeyword = "ImportProducts",
+                    Enabled = true,
+                    Name = "Products were imported"
+                },
+                new ActivityLogType
+                {
+                    SystemKeyword = "ImportStates",
+                    Enabled = true,
+                    Name = "States were imported"
+                },
+                new ActivityLogType
+                {
                     SystemKeyword = "InstallNewPlugin",
                     Enabled = true,
                     Name = "Install a new plugin"
@@ -11655,7 +11938,13 @@ namespace Nop.Services.Installation
                     SystemKeyword = "PublicStore.DeleteForumPost",
                     Enabled = false,
                     Name = "Public store. Delete forum post"
-                }
+                },
+                new ActivityLogType
+                {
+                    SystemKeyword = "UploadNewPlugin",
+                    Enabled = true,
+                    Name = "Upload a plugin"
+                },
             };
             _activityLogTypeRepository.Insert(activityLogTypes);
         }
@@ -11668,14 +11957,16 @@ namespace Nop.Services.Installation
                                        {
                                            Name = "Simple product",
                                            ViewPath = "ProductTemplate.Simple",
-                                           DisplayOrder = 10
+                                           DisplayOrder = 10,
+                                           IgnoredProductTypes = ((int)ProductType.GroupedProduct).ToString()
                                        },
                                    new ProductTemplate
                                        {
                                            Name = "Grouped product (with variants)",
                                            ViewPath = "ProductTemplate.Grouped",
-                                           DisplayOrder = 100
-                                       },
+                                           DisplayOrder = 100,
+                                           IgnoredProductTypes = ((int)ProductType.SimpleProduct).ToString()
+                                       }
                                };
             _productTemplateRepository.Insert(productTemplates);
         }
@@ -11968,15 +12259,14 @@ namespace Nop.Services.Installation
             InstallShippingMethods();
             InstallDeliveryDates();
             InstallProductAvailabilityRanges();
-            InstallCustomersAndUsers(defaultUserEmail, defaultUserPassword);
             InstallEmailAccounts();
             InstallMessageTemplates();
-            InstallSettings();
             InstallTopicTemplates();
+            InstallSettings(installSampleData);
+            InstallCustomersAndUsers(defaultUserEmail, defaultUserPassword);
             InstallTopics();
             InstallLocaleResources();
             InstallActivityLogTypes();
-            HashDefaultCustomerPassword(defaultUserEmail, defaultUserPassword);
             InstallProductTemplates();
             InstallCategoryTemplates();
             InstallManufacturerTemplates();

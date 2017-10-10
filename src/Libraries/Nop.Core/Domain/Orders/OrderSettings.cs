@@ -82,6 +82,14 @@ namespace Nop.Core.Domain.Orders
         /// </summary>
         public bool ReturnRequestsEnabled { get; set; }
         /// <summary>
+        /// Gets or sets a value indicating whether customers are allowed to upload files
+        /// </summary>
+        public bool ReturnRequestsAllowFiles { get; set; }
+        /// <summary>
+        /// Gets or sets maximum file size for upload file (return request). Set 0 to allow any file size
+        /// </summary>
+        public int ReturnRequestsFileMaximumSize { get; set; }
+        /// <summary>
         /// Gets or sets a value "Return requests" number mask
         /// </summary>
         public string ReturnRequestNumberMask { get; set; }
@@ -91,13 +99,13 @@ namespace Nop.Core.Domain.Orders
         public int NumberOfDaysReturnRequestAvailable { get; set; }
 
         /// <summary>
-        ///  Gift cards are activated when the order status is
+        /// Gets or sets a value indicating whether to activate related gift cards after completing the order
         /// </summary>
-        public int GiftCards_Activated_OrderStatusId { get; set; }
+        public bool ActivateGiftCardsAfterCompletingOrder { get; set; }
         /// <summary>
-        ///  Gift cards are deactivated when the order status is
+        /// Gets or sets a value indicating whether to deactivate related gift cards after cancelling the order
         /// </summary>
-        public int GiftCards_Deactivated_OrderStatusId { get; set; }
+        public bool DeactivateGiftCardsAfterCancellingOrder { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether to deactivate related gift cards after deleting the order
         /// </summary>
@@ -112,6 +120,20 @@ namespace Nop.Core.Domain.Orders
         /// Gets or sets a value indicating whether an order status should be set to "Complete" only when its shipping status is "Delivered". Otherwise, "Shipped" status will be enough.
         /// </summary>
         public bool CompleteOrderWhenDelivered { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets a custom order number mask
+        /// </summary>
+        public string CustomOrderNumberMask { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the orders need to be exported with their products
+        /// </summary>
+        public bool ExportWithProducts { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether administrators (in impersonation mode) are allowed to buy products marked as "Call for price"
+        /// </summary>
+        public bool AllowAdminsToBuyCallForPriceProducts { get; set; }
     }
 }

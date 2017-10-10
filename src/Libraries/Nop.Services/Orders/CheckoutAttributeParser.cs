@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml;
 using Nop.Core.Domain.Orders;
+using Nop.Services.Catalog;
 
 namespace Nop.Services.Orders
 {
@@ -12,12 +13,28 @@ namespace Nop.Services.Orders
     /// </summary>
     public partial class CheckoutAttributeParser : ICheckoutAttributeParser
     {
-        private readonly ICheckoutAttributeService _checkoutAttributeService;
+        #region Fields
 
-        public CheckoutAttributeParser(ICheckoutAttributeService checkoutAttributeService)
+        private readonly ICheckoutAttributeService _checkoutAttributeService;
+        private readonly IProductAttributeParser _productAttributeParser;
+        private readonly IProductService _productService;
+
+        #endregion
+
+        #region Ctor
+
+        public CheckoutAttributeParser(ICheckoutAttributeService checkoutAttributeService,
+            IProductAttributeParser productAttributeParser,
+            IProductService productService)
         {
             this._checkoutAttributeService = checkoutAttributeService;
+            this._productAttributeParser = productAttributeParser;
+            this._productService = productService;
         }
+
+        #endregion
+
+        #region Utilities
 
         /// <summary>
         /// Gets selected checkout attribute identifiers
@@ -40,8 +57,7 @@ namespace Nop.Services.Orders
                     if (node.Attributes != null && node.Attributes["ID"] != null)
                     {
                         string str1 = node.Attributes["ID"].InnerText.Trim();
-                        int id;
-                        if (int.TryParse(str1, out id))
+                        if (int.TryParse(str1, out int id))
                         {
                             ids.Add(id);
                         }
@@ -54,6 +70,10 @@ namespace Nop.Services.Orders
             }
             return ids;
         }
+
+        #endregion
+
+        #region Methods
 
         /// <summary>
         /// Gets selected checkout attributes
@@ -100,8 +120,7 @@ namespace Nop.Services.Orders
                 {
                     if (!String.IsNullOrEmpty(valueStr))
                     {
-                        int id;
-                        if (int.TryParse(valueStr, out id))
+                        if (int.TryParse(valueStr, out int id))
                         {
                             var value = _checkoutAttributeService.GetCheckoutAttributeValueById(id);
                             if (value != null)
@@ -136,8 +155,7 @@ namespace Nop.Services.Orders
                     if (node1.Attributes != null && node1.Attributes["ID"] != null)
                     {
                         string str1 = node1.Attributes["ID"].InnerText.Trim();
-                        int id;
-                        if (int.TryParse(str1, out id))
+                        if (int.TryParse(str1, out int id))
                         {
                             if (id == checkoutAttributeId)
                             {
@@ -191,8 +209,7 @@ namespace Nop.Services.Orders
                     if (node1.Attributes != null && node1.Attributes["ID"] != null)
                     {
                         string str1 = node1.Attributes["ID"].InnerText.Trim();
-                        int id;
-                        if (int.TryParse(str1, out id))
+                        if (int.TryParse(str1, out int id))
                         {
                             if (id == ca.Id)
                             {
@@ -241,7 +258,7 @@ namespace Nop.Services.Orders
             var result = attributesXml;
 
             //removing "shippable" checkout attributes if there's no any shippable products in the cart
-            if (!cart.RequiresShipping())
+            if (!cart.RequiresShipping(_productService, _productAttributeParser))
             {
                 //find attribute IDs to remove
                 var checkoutAttributeIdsToRemove = new List<int>();
@@ -261,8 +278,7 @@ namespace Nop.Services.Orders
                         if (node.Attributes != null && node.Attributes["ID"] != null)
                         {
                             string str1 = node.Attributes["ID"].InnerText.Trim();
-                            int id;
-                            if (int.TryParse(str1, out id))
+                            if (int.TryParse(str1, out int id))
                             {
                                 if (checkoutAttributeIdsToRemove.Contains(id))
                                 {
@@ -294,7 +310,7 @@ namespace Nop.Services.Orders
         public virtual bool? IsConditionMet(CheckoutAttribute attribute, string selectedAttributesXml)
         {
             if (attribute == null)
-                throw new ArgumentNullException("attribute");
+                throw new ArgumentNullException(nameof(attribute));
 
             var conditionAttributeXml = attribute.ConditionAttributeXml;
             if (String.IsNullOrEmpty(conditionAttributeXml))
@@ -363,8 +379,7 @@ namespace Nop.Services.Orders
                     if (node1.Attributes != null && node1.Attributes["ID"] != null)
                     {
                         string str1 = node1.Attributes["ID"].InnerText.Trim();
-                        int id;
-                        if (int.TryParse(str1, out id))
+                        if (int.TryParse(str1, out int id))
                         {
                             if (id == attribute.Id)
                             {
@@ -389,5 +404,7 @@ namespace Nop.Services.Orders
             }
             return result;
         }
+
+        #endregion
     }
 }

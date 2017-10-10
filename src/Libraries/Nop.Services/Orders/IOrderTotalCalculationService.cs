@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Nop.Core.Domain.Customers;
-using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Orders;
 using Nop.Services.Discounts;
 
@@ -193,11 +192,18 @@ namespace Nop.Services.Orders
         bool CheckMinimumRewardPointsToUseRequirement(int rewardPoints);
 
         /// <summary>
+        /// Calculate how order total (maximum amount) for which reward points could be earned/reduced
+        /// </summary>
+        /// <param name="orderShippingInclTax">Order shipping (including tax)</param>
+        /// <param name="orderTotal">Order total</param>
+        /// <returns>Applicable order total</returns>
+        decimal CalculateApplicableOrderTotalForRewardPoints(decimal orderShippingInclTax, decimal orderTotal);
+        /// <summary>
         /// Calculate how much reward points will be earned/reduced based on certain amount spent
         /// </summary>
         /// <param name="customer">Customer</param>
         /// <param name="amount">Amount (in primary store currency)</param>
-        /// <returns>umber of reward points</returns>
+        /// <returns>Number of reward points</returns>
         int CalculateRewardPoints(Customer customer, decimal amount);
     }
 }

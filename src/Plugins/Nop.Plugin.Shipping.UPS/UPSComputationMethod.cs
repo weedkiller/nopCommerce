@@ -9,11 +9,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Web.Routing;
 using System.Xml;
 using Nop.Core;
 using Nop.Core.Domain.Directory;
-using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Plugins;
 using Nop.Plugin.Shipping.UPS.Domain;
@@ -53,12 +51,14 @@ namespace Nop.Plugin.Shipping.UPS
         private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         private readonly ILogger _logger;
         private readonly ILocalizationService _localizationService;
+        private readonly IWebHelper _webHelper;
 
         private readonly StringBuilder _traceMessages;
 
         #endregion
 
         #region Ctor
+
         public UPSComputationMethod(IMeasureService measureService,
             IShippingService shippingService,
             ISettingService settingService,
@@ -68,7 +68,8 @@ namespace Nop.Plugin.Shipping.UPS
             CurrencySettings currencySettings,
             IOrderTotalCalculationService orderTotalCalculationService,
             ILogger logger,
-            ILocalizationService localizationService)
+            ILocalizationService localizationService,
+            IWebHelper webHelper)
         {
             this._measureService = measureService;
             this._shippingService = shippingService;
@@ -80,9 +81,11 @@ namespace Nop.Plugin.Shipping.UPS
             this._orderTotalCalculationService = orderTotalCalculationService;
             this._logger = logger;
             this._localizationService = localizationService;
+            this._webHelper = webHelper;
 
             this._traceMessages = new StringBuilder();
         }
+
         #endregion
 
         #region Utilities
@@ -95,6 +98,8 @@ namespace Nop.Plugin.Shipping.UPS
             string zipPostalCodeTo = getShippingOptionRequest.ShippingAddress.ZipPostalCode;
             string countryCodeFrom = getShippingOptionRequest.CountryFrom.TwoLetterIsoCode;
             string countryCodeTo = getShippingOptionRequest.ShippingAddress.Country.TwoLetterIsoCode;
+            var stateCodeFrom = getShippingOptionRequest.StateProvinceFrom?.Abbreviation;
+            var stateCodeTo = getShippingOptionRequest.ShippingAddress.StateProvince?.Abbreviation;
 
             var sb = new StringBuilder();
             sb.Append("<?xml version='1.0'?>");
@@ -123,6 +128,7 @@ namespace Nop.Plugin.Shipping.UPS
             }
             sb.Append("<Shipment>");
             sb.Append("<Shipper>");
+            sb.AppendFormat("<ShipperNumber>{0}</ShipperNumber>", _upsSettings.AccountNumber);
             sb.Append("<Address>");
             sb.AppendFormat("<PostalCode>{0}</PostalCode>", zipPostalCodeFrom);
             sb.AppendFormat("<CountryCode>{0}</CountryCode>", countryCodeFrom);
@@ -133,19 +139,23 @@ namespace Nop.Plugin.Shipping.UPS
             sb.Append("<ResidentialAddressIndicator/>");
             sb.AppendFormat("<PostalCode>{0}</PostalCode>", zipPostalCodeTo);
             sb.AppendFormat("<CountryCode>{0}</CountryCode>", countryCodeTo);
+            if (!string.IsNullOrEmpty(stateCodeTo))
+                sb.AppendFormat("<StateProvinceCode>{0}</StateProvinceCode>", stateCodeTo);
             sb.Append("</Address>");
             sb.Append("</ShipTo>");
             sb.Append("<ShipFrom>");
             sb.Append("<Address>");
             sb.AppendFormat("<PostalCode>{0}</PostalCode>", zipPostalCodeFrom);
             sb.AppendFormat("<CountryCode>{0}</CountryCode>", countryCodeFrom);
+            if (!string.IsNullOrEmpty(stateCodeFrom))
+                sb.AppendFormat("<StateProvinceCode>{0}</StateProvinceCode>", stateCodeFrom);
             sb.Append("</Address>");
             sb.Append("</ShipFrom>");
             sb.Append("<Service>");
             sb.Append("<Code>03</Code>");
             sb.Append("</Service>");
 
-            //saturday delivery flag
+            //Saturday delivery flag
             if (saturdayDelivery)
             {
                 sb.Append("<ShipmentServiceOptions>");
@@ -153,18 +163,21 @@ namespace Nop.Plugin.Shipping.UPS
                 sb.Append("</ShipmentServiceOptions>");
             }
 
+            //negotiated rates flag
+            if (!string.IsNullOrEmpty(_upsSettings.AccountNumber) && !string.IsNullOrEmpty(stateCodeFrom) && !string.IsNullOrEmpty(stateCodeTo))
+            {
+                sb.Append("<RateInformation>");
+                sb.Append("<NegotiatedRatesIndicator/>");
+                sb.Append("</RateInformation>");
+            }
+
             string currencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode;
 
             //get subTotalWithoutDiscountBase, for use as insured value (when Settings.InsurePackage)
             //(note: prior versions used "with discount", but "without discount" better reflects true value to insure.)
-            decimal orderSubTotalDiscountAmount;
-            List<DiscountForCaching> orderSubTotalAppliedDiscounts;
-            decimal subTotalWithoutDiscountBase;
-            decimal subTotalWithDiscountBase;
             //TODO we should use getShippingOptionRequest.Items.GetQuantity() method to get subtotal
-            _orderTotalCalculationService.GetShoppingCartSubTotal(getShippingOptionRequest.Items.Select(x=>x.ShoppingCartItem).ToList(),
-                false, out orderSubTotalDiscountAmount, out orderSubTotalAppliedDiscounts,
-                out subTotalWithoutDiscountBase, out subTotalWithDiscountBase);
+            _orderTotalCalculationService.GetShoppingCartSubTotal(getShippingOptionRequest.Items.Select(x => x.ShoppingCartItem).ToList(),
+                false, out decimal _, out List<DiscountForCaching> _, out decimal subTotalWithoutDiscountBase, out decimal _);
 
             if (_upsSettings.Tracing)
                 _traceMessages.AppendLine(" Packing Type: " + _upsSettings.PackingType.ToString());
@@ -227,13 +240,12 @@ namespace Nop.Plugin.Shipping.UPS
             var usedMeasureWeight = GetUsedMeasureWeight();
             var usedMeasureDimension = GetUsedMeasureDimension();
 
-            decimal lengthTmp, widthTmp, heightTmp;
-            _shippingService.GetDimensions(getShippingOptionRequest.Items, out widthTmp, out lengthTmp, out heightTmp);
+            _shippingService.GetDimensions(getShippingOptionRequest.Items, out decimal widthTmp, out decimal lengthTmp, out decimal heightTmp, true);
 
             int length = ConvertFromPrimaryMeasureDimension(lengthTmp, usedMeasureDimension);
             int height = ConvertFromPrimaryMeasureDimension(heightTmp, usedMeasureDimension);
             int width = ConvertFromPrimaryMeasureDimension(widthTmp, usedMeasureDimension);
-            int weight = ConvertFromPrimaryMeasureWeight(_shippingService.GetTotalWeight(getShippingOptionRequest), usedMeasureWeight);
+            int weight = ConvertFromPrimaryMeasureWeight(_shippingService.GetTotalWeight(getShippingOptionRequest, ignoreFreeShippedItems: true), usedMeasureWeight);
             if (length < 1)
                 length = 1;
             if (height < 1)
@@ -306,11 +318,10 @@ namespace Nop.Plugin.Shipping.UPS
                 var qty = packageItem.GetQuantity();
 
                 //get dimensions for qty 1
-                decimal lengthTmp, widthTmp, heightTmp;
                 _shippingService.GetDimensions(new List<GetShippingOptionRequest.PackageItem>
                                                {
                                                    new GetShippingOptionRequest.PackageItem(sci, 1)
-                                               }, out widthTmp, out lengthTmp, out heightTmp);
+                                               }, out decimal widthTmp, out decimal lengthTmp, out decimal heightTmp, true);
 
                 int length = ConvertFromPrimaryMeasureDimension(lengthTmp, usedMeasureDimension);
                 int height = ConvertFromPrimaryMeasureDimension(heightTmp, usedMeasureDimension);
@@ -365,11 +376,10 @@ namespace Nop.Plugin.Shipping.UPS
                 var sci = getShippingOptionRequest.Items[0].ShoppingCartItem;
 
                 //get dimensions for qty 1
-                decimal lengthTmp, widthTmp, heightTmp;
                 _shippingService.GetDimensions(new List<GetShippingOptionRequest.PackageItem>
                                                {
                                                    new GetShippingOptionRequest.PackageItem(sci, 1)
-                                               }, out widthTmp, out lengthTmp, out heightTmp);
+                                               }, out decimal widthTmp, out decimal lengthTmp, out decimal heightTmp, true);
 
                 totalPackagesDims = 1;
                 length = ConvertFromPrimaryMeasureDimension(lengthTmp, usedMeasureDimension);
@@ -384,11 +394,10 @@ namespace Nop.Plugin.Shipping.UPS
                     var sci = item.ShoppingCartItem;
 
                     //get dimensions for qty 1
-                    decimal lengthTmp, widthTmp, heightTmp;
                     _shippingService.GetDimensions(new List<GetShippingOptionRequest.PackageItem>
                                                {
                                                    new GetShippingOptionRequest.PackageItem(sci, 1)
-                                               }, out widthTmp, out lengthTmp, out heightTmp);
+                                               }, out decimal widthTmp, out decimal lengthTmp, out decimal _, true);
 
                     int productLength = ConvertFromPrimaryMeasureDimension(lengthTmp, usedMeasureDimension);
                     int productHeight = ConvertFromPrimaryMeasureDimension(lengthTmp, usedMeasureDimension);
@@ -429,7 +438,7 @@ namespace Nop.Plugin.Shipping.UPS
             if (width < 1)
                 width = 1;
 
-            int weight = ConvertFromPrimaryMeasureWeight(_shippingService.GetTotalWeight(getShippingOptionRequest), usedMeasureWeight);
+            int weight = ConvertFromPrimaryMeasureWeight(_shippingService.GetTotalWeight(getShippingOptionRequest, ignoreFreeShippedItems: true), usedMeasureWeight);
             if (weight < 1)
                 weight = 1;
 
@@ -666,7 +675,7 @@ namespace Nop.Plugin.Shipping.UPS
                                     }
                                 }
                             }
-                            if (((tr.Name == "RatedShipment") && (tr.NodeType == XmlNodeType.EndElement)) || ((tr.Name == "RatedPackage") && (tr.NodeType == XmlNodeType.Element)))
+                            if ((tr.Name == "RatedShipment") && (tr.NodeType == XmlNodeType.EndElement))
                             {
                                 break;
                             }
@@ -685,9 +694,39 @@ namespace Nop.Plugin.Shipping.UPS
                                     }
                                 }
                             }
+                            //parse negotiated rates
+                            if ((tr.Name == "NegotiatedRates") && (tr.NodeType == XmlNodeType.Element))
+                            {
+                                while (tr.Read())
+                                {
+                                    if ((tr.Name == "NetSummaryCharges") && (tr.NodeType == XmlNodeType.Element))
+                                    {
+                                        while (tr.Read())
+                                        {
+                                            if ((tr.Name == "GrandTotal") && (tr.NodeType == XmlNodeType.Element))
+                                            {
+                                                while (tr.Read())
+                                                {
+                                                    if ((tr.Name == "MonetaryValue") && (tr.NodeType == XmlNodeType.Element))
+                                                    {
+                                                        monetaryValue = tr.ReadString();
+                                                        tr.ReadEndElement();
+                                                    }
+                                                    if ((tr.Name == "GrandTotal") && (tr.NodeType == XmlNodeType.EndElement))
+                                                        break;
+                                                }
+                                            }
+                                            if ((tr.Name == "NetSummaryCharges") && (tr.NodeType == XmlNodeType.EndElement))
+                                                break;
+                                        }
+                                    }
+                                    if ((tr.Name == "NegotiatedRates") && (tr.NodeType == XmlNodeType.EndElement))
+                                        break;
+                                }
+                            }
                         }
                         string service = GetServiceName(serviceCode);
-                        string serviceId = String.Format("[{0}]", serviceCode);
+                        string serviceId = $"[{serviceCode}]";
 
                         // Go to the next rate if the service ID is not in the list of services to offer
                         if (!saturdayDelivery && !String.IsNullOrEmpty(carrierServicesOffered) && !carrierServicesOffered.Contains(serviceId))
@@ -722,7 +761,7 @@ namespace Nop.Plugin.Shipping.UPS
         public GetShippingOptionResponse GetShippingOptions(GetShippingOptionRequest getShippingOptionRequest)
         {
             if (getShippingOptionRequest == null)
-                throw new ArgumentNullException("getShippingOptionRequest");
+                throw new ArgumentNullException(nameof(getShippingOptionRequest));
 
             var response = new GetShippingOptionResponse();
 
@@ -767,7 +806,7 @@ namespace Nop.Plugin.Shipping.UPS
                     foreach (var shippingOption in shippingOptions)
                     {
                         if (!shippingOption.Name.ToLower().StartsWith("ups"))
-                            shippingOption.Name = string.Format("UPS {0}", shippingOption.Name);
+                            shippingOption.Name = $"UPS {shippingOption.Name}";
                         shippingOption.Rate += _upsSettings.AdditionalHandlingCharge;
                         response.ShippingOptions.Add(shippingOption);
                     }
@@ -777,7 +816,7 @@ namespace Nop.Plugin.Shipping.UPS
                     response.AddError(error);
                 }
 
-                //saturday delivery
+                //Saturday delivery
                 if (_upsSettings.CarrierServicesOffered.Contains("[sa]"))
                 {
                     requestString = CreateRequest(_upsSettings.AccessKey, _upsSettings.Username, _upsSettings.Password, getShippingOptionRequest,
@@ -795,8 +834,8 @@ namespace Nop.Plugin.Shipping.UPS
                     {
                         foreach (var shippingOption in saturdayDeliveryShippingOptions)
                         {
-                            shippingOption.Name = string.Format("{0}{1} - Saturday Delivery",
-                                shippingOption.Name.ToLower().StartsWith("ups") ? string.Empty : "UPS ", shippingOption.Name);
+                            shippingOption.Name =
+                                $"{(shippingOption.Name.ToLower().StartsWith("ups") ? string.Empty : "UPS ")}{shippingOption.Name} - Saturday Delivery";
                             shippingOption.Rate += _upsSettings.AdditionalHandlingCharge;
                             response.ShippingOptions.Add(shippingOption);
                         }
@@ -808,12 +847,16 @@ namespace Nop.Plugin.Shipping.UPS
                 if (response.ShippingOptions.Any())
                     response.Errors.Clear();
             }
+            catch (Exception exc)
+            {
+                response.AddError($"UPS Service is currently unavailable, try again later. {exc.Message}");
+            }
             finally
             {
                 if (_upsSettings.Tracing && _traceMessages.Length > 0)
                 {
-                    string shortMessage = String.Format("UPS Get Shipping Options for customer {0}.  {1} item(s) in cart",
-                        getShippingOptionRequest.Customer.Email, getShippingOptionRequest.Items.Count);
+                    string shortMessage =
+                        $"UPS Get Shipping Options for customer {getShippingOptionRequest.Customer.Email}.  {getShippingOptionRequest.Items.Count} item(s) in cart";
                     _logger.Information(shortMessage, new Exception(_traceMessages.ToString()), getShippingOptionRequest.Customer);
                 }
             }
@@ -832,16 +875,11 @@ namespace Nop.Plugin.Shipping.UPS
         }
 
         /// <summary>
-        /// Gets a route for provider configuration
+        /// Gets a configuration page URL
         /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
+        public override string GetConfigurationPageUrl()
         {
-            actionName = "Configure";
-            controllerName = "ShippingUPS";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Nop.Plugin.Shipping.UPS.Controllers" }, { "area", null } };
+            return $"{_webHelper.GetStoreLocation()}Admin/ShippingUPS/Configure";
         }
 
         /// <summary>
@@ -853,9 +891,6 @@ namespace Nop.Plugin.Shipping.UPS
             var settings = new UPSSettings
             {
                 Url = "https://www.ups.com/ups.app/xml/Rate",
-                AccessKey = "AccessKey1",
-                Username = "Username1",
-                Password = "Password",
                 CustomerClassification = UPSCustomerClassification.Retail,
                 PickupType = UPSPickupType.OneTimePickup,
                 PackagingType = UPSPackagingType.ExpressBox,
@@ -870,6 +905,8 @@ namespace Nop.Plugin.Shipping.UPS
             this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.Url.Hint", "Specify UPS URL.");
             this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccessKey", "Access Key");
             this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccessKey.Hint", "Specify UPS access key.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccountNumber", "Account number");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccountNumber.Hint", "Specify UPS account number (required to get negotiated rates).");
             this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.Username", "Username");
             this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.Username.Hint", "Specify UPS username.");
             this.AddOrUpdatePluginLocaleResource("Plugins.Shipping.UPS.Fields.Password", "Password");
@@ -923,6 +960,8 @@ namespace Nop.Plugin.Shipping.UPS
             this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.Url.Hint");
             this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccessKey");
             this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccessKey.Hint");
+            this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccountNumber");
+            this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.AccountNumber.Hint");
             this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.Username");
             this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.Username.Hint");
             this.DeletePluginLocaleResource("Plugins.Shipping.UPS.Fields.Password");
@@ -973,10 +1012,7 @@ namespace Nop.Plugin.Shipping.UPS
         /// </summary>
         public ShippingRateComputationMethodType ShippingRateComputationMethodType
         {
-            get
-            {
-                return ShippingRateComputationMethodType.Realtime;
-            }
+            get { return ShippingRateComputationMethodType.Realtime; }
         }
 
         /// <summary>

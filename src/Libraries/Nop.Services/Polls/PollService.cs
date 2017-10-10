@@ -84,7 +84,7 @@ namespace Nop.Services.Polls
             {
                 query = query.Where(p => p.SystemKeyword == systemKeyword);
             }
-            query = query.OrderBy(p => p.DisplayOrder);
+            query = query.OrderBy(p => p.DisplayOrder).ThenBy(p => p.Id);
 
             var polls = new PagedList<Poll>(query, pageIndex, pageSize);
             return polls;
@@ -97,7 +97,7 @@ namespace Nop.Services.Polls
         public virtual void DeletePoll(Poll poll)
         {
             if (poll == null)
-                throw new ArgumentNullException("poll");
+                throw new ArgumentNullException(nameof(poll));
 
             _pollRepository.Delete(poll);
 
@@ -112,7 +112,7 @@ namespace Nop.Services.Polls
         public virtual void InsertPoll(Poll poll)
         {
             if (poll == null)
-                throw new ArgumentNullException("poll");
+                throw new ArgumentNullException(nameof(poll));
 
             _pollRepository.Insert(poll);
 
@@ -127,7 +127,7 @@ namespace Nop.Services.Polls
         public virtual void UpdatePoll(Poll poll)
         {
             if (poll == null)
-                throw new ArgumentNullException("poll");
+                throw new ArgumentNullException(nameof(poll));
 
             _pollRepository.Update(poll);
 
@@ -155,7 +155,7 @@ namespace Nop.Services.Polls
         public virtual void DeletePollAnswer(PollAnswer pollAnswer)
         {
             if (pollAnswer == null)
-                throw new ArgumentNullException("pollAnswer");
+                throw new ArgumentNullException(nameof(pollAnswer));
 
             _pollAnswerRepository.Delete(pollAnswer);
 
@@ -164,7 +164,7 @@ namespace Nop.Services.Polls
         }
 
         /// <summary>
-        /// Gets a value indicating whether customer already vited for this poll
+        /// Gets a value indicating whether customer already voted for this poll
         /// </summary>
         /// <param name="pollId">Poll identifier</param>
         /// <param name="customerId">Customer identifier</param>

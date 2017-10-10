@@ -56,7 +56,10 @@ namespace Nop.Services.Orders
             query = query.OrderBy(rph => rph.CreatedOnUtc).ThenBy(rph => rph.Id);
 
             //get has not yet activated points, but it's time to do it
-            var notActivatedRph = query.Where(rph => !rph.PointsBalance.HasValue && rph.CreatedOnUtc < DateTime.UtcNow).ToList();
+            //The function 'CurrentUtcDateTime' is not supported by SQL Server Compact. 
+            //That's why we pass the date value
+            var nowUtc = DateTime.UtcNow;
+            var notActivatedRph = query.Where(rph => !rph.PointsBalance.HasValue && rph.CreatedOnUtc < nowUtc).ToList();
 
             //nothing to update
             if (!notActivatedRph.Any())
@@ -89,7 +92,7 @@ namespace Nop.Services.Orders
         /// <param name="pageSize">Page size</param>
         /// <returns>Reward point history records</returns>
         public virtual IPagedList<RewardPointsHistory> GetRewardPointsHistory(int customerId = 0, bool showHidden = false,
-            bool showNotActivated = true, int pageIndex = 0, int pageSize = int.MaxValue)
+            bool showNotActivated = false, int pageIndex = 0, int pageSize = int.MaxValue)
         {
             var query = _rphRepository.Table;
             if (customerId > 0)
@@ -103,7 +106,11 @@ namespace Nop.Services.Orders
             if (!showNotActivated)
             {
                 //show only the points that already activated
-                query = query.Where(rph => rph.CreatedOnUtc < DateTime.UtcNow);
+
+                //The function 'CurrentUtcDateTime' is not supported by SQL Server Compact. 
+                //That's why we pass the date value
+                var nowUtc = DateTime.UtcNow;
+                query = query.Where(rph => rph.CreatedOnUtc < nowUtc);
             }
 
             //update points balance
@@ -125,12 +132,12 @@ namespace Nop.Services.Orders
         /// <param name="usedWithOrder">The order for which points were redeemed (spent) as a payment</param>
         /// <param name="usedAmount">Used amount</param>
         /// <param name="activatingDate">Date and time of activating reward points; pass null to immediately activating</param>
-        public virtual void AddRewardPointsHistoryEntry(Customer customer,
-            int points, int storeId, string message = "",
+        /// <returns>Reward points history entry identifier</returns>
+        public virtual int AddRewardPointsHistoryEntry(Customer customer, int points, int storeId, string message = "",
             Order usedWithOrder = null, decimal usedAmount = 0M, DateTime? activatingDate = null)
         {
             if (customer == null)
-                throw new ArgumentNullException("customer");
+                throw new ArgumentNullException(nameof(customer));
 
             if (storeId <= 0)
                 throw new ArgumentException("Store ID should be valid");
@@ -151,6 +158,8 @@ namespace Nop.Services.Orders
 
             //event notification
             _eventPublisher.EntityInserted(rph);
+
+            return rph.Id;
         }
 
         /// <summary>
@@ -168,7 +177,10 @@ namespace Nop.Services.Orders
                 query = query.Where(rph => rph.StoreId == storeId);
 
             //show only the points that already activated
-            query = query.Where(rph => rph.CreatedOnUtc < DateTime.UtcNow);
+            //The function 'CurrentUtcDateTime' is not supported by SQL Server Compact. 
+            //That's why we pass the date value
+            var nowUtc = DateTime.UtcNow;
+            query = query.Where(rph => rph.CreatedOnUtc < nowUtc);
 
             //first update points balance
             UpdateRewardPointsBalance(query);
@@ -179,6 +191,35 @@ namespace Nop.Services.Orders
             return lastRph != null && lastRph.PointsBalance.HasValue ? lastRph.PointsBalance.Value : 0;
         }
 
+
+        /// <summary>
+        /// Gets a reward point history entry
+        /// </summary>
+        /// <param name="rewardPointsHistoryId">Reward point history entry identifier</param>
+        /// <returns>Reward point history entry</returns>
+        public virtual RewardPointsHistory GetRewardPointsHistoryEntryById(int rewardPointsHistoryId)
+        {
+            if (rewardPointsHistoryId == 0)
+                return null;
+
+            return _rphRepository.GetById(rewardPointsHistoryId);
+        }
+
+        /// <summary>
+        /// Delete the reward point history entry
+        /// </summary>
+        /// <param name="rewardPointsHistory">Reward point history entry</param>
+        public virtual void DeleteRewardPointsHistoryEntry(RewardPointsHistory rewardPointsHistory)
+        {
+            if (rewardPointsHistory == null)
+                throw new ArgumentNullException(nameof(rewardPointsHistory));
+
+            _rphRepository.Delete(rewardPointsHistory);
+
+            //event notification
+            _eventPublisher.EntityDeleted(rewardPointsHistory);
+        }
+
         /// <summary>
         /// Updates the reward point history entry
         /// </summary>
@@ -186,7 +227,7 @@ namespace Nop.Services.Orders
         public virtual void UpdateRewardPointsHistoryEntry(RewardPointsHistory rewardPointsHistory)
         {
             if (rewardPointsHistory == null)
-                throw new ArgumentNullException("rewardPointsHistory");
+                throw new ArgumentNullException(nameof(rewardPointsHistory));
 
             _rphRepository.Update(rewardPointsHistory);
 

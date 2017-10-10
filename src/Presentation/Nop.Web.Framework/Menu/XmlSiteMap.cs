@@ -3,8 +3,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Web.Routing;
 using System.Xml;
+using Microsoft.AspNetCore.Routing;
 using Nop.Core;
 using Nop.Core.Infrastructure;
 using Nop.Services.Localization;
@@ -87,8 +87,8 @@ namespace Nop.Web.Framework.Menu
                 siteMapNode.ControllerName = controllerName;
                 siteMapNode.ActionName = actionName;
 
-                //apply admin area as described here - http://www.nopcommerce.com/boards/t/20478/broken-menus-in-admin-area-whilst-trying-to-make-a-plugin-admin-page.aspx
-                siteMapNode.RouteValues = new RouteValueDictionary { { "area", "Admin" } };
+                //apply admin area as described here - https://www.nopcommerce.com/boards/t/20478/broken-menus-in-admin-area-whilst-trying-to-make-a-plugin-admin-page.aspx
+                siteMapNode.RouteValues = new RouteValueDictionary { { "area", AreaNames.Admin } };
             }
             else if (!string.IsNullOrEmpty(url))
             {
@@ -109,6 +109,13 @@ namespace Nop.Web.Framework.Menu
             else
             {
                 siteMapNode.Visible = true;
+            }
+
+            // Open URL in new tab
+            var openUrlInNewTabValue = GetStringValueFromAttribute(xmlNode, "OpenUrlInNewTab");
+            if (!string.IsNullOrWhiteSpace(openUrlInNewTabValue) && bool.TryParse(openUrlInNewTabValue, out bool booleanResult))
+            {
+                siteMapNode.OpenUrlInNewTab = booleanResult;
             }
         }
 

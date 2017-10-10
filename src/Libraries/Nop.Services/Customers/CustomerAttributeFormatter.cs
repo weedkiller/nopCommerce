@@ -1,6 +1,6 @@
 using System;
+using System.Net;
 using System.Text;
-using System.Web;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Html;
@@ -40,10 +40,10 @@ namespace Nop.Services.Customers
         /// Formats attributes
         /// </summary>
         /// <param name="attributesXml">Attributes in XML format</param>
-        /// <param name="serapator">Serapator</param>
+        /// <param name="separator">Separator</param>
         /// <param name="htmlEncode">A value indicating whether to encode (HTML) values</param>
         /// <returns>Attributes</returns>
-        public virtual string FormatAttributes(string attributesXml, string serapator = "<br />", bool htmlEncode = true)
+        public virtual string FormatAttributes(string attributesXml, string separator = "<br />", bool htmlEncode = true)
         {
             var result = new StringBuilder();
 
@@ -65,8 +65,8 @@ namespace Nop.Services.Customers
                             var attributeName = attribute.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id);
                             //encode (if required)
                             if (htmlEncode)
-                                attributeName = HttpUtility.HtmlEncode(attributeName);
-                            formattedAttribute = string.Format("{0}: {1}", attributeName, HtmlHelper.FormatText(valueStr, false, true, false, false, false, false));
+                                attributeName = WebUtility.HtmlEncode(attributeName);
+                            formattedAttribute = $"{attributeName}: {HtmlHelper.FormatText(valueStr, false, true, false, false, false, false)}";
                             //we never encode multiline textbox input
                         }
                         else if (attribute.AttributeControlType == AttributeControlType.FileUpload)
@@ -77,32 +77,31 @@ namespace Nop.Services.Customers
                         else
                         {
                             //other attributes (textbox, datepicker)
-                            formattedAttribute = string.Format("{0}: {1}", attribute.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id), valueStr);
+                            formattedAttribute = $"{attribute.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id)}: {valueStr}";
                             //encode (if required)
                             if (htmlEncode)
-                                formattedAttribute = HttpUtility.HtmlEncode(formattedAttribute);
+                                formattedAttribute = WebUtility.HtmlEncode(formattedAttribute);
                         }
                     }
                     else
                     {
-                        int attributeValueId;
-                        if (int.TryParse(valueStr, out attributeValueId))
+                        if (int.TryParse(valueStr, out int attributeValueId))
                         {
                             var attributeValue = _customerAttributeService.GetCustomerAttributeValueById(attributeValueId);
                             if (attributeValue != null)
                             {
-                                formattedAttribute = string.Format("{0}: {1}", attribute.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id), attributeValue.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id));
+                                formattedAttribute = $"{attribute.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id)}: {attributeValue.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id)}";
                             }
                             //encode (if required)
                             if (htmlEncode)
-                                formattedAttribute = HttpUtility.HtmlEncode(formattedAttribute);
+                                formattedAttribute = WebUtility.HtmlEncode(formattedAttribute);
                         }
                     }
 
                     if (!String.IsNullOrEmpty(formattedAttribute))
                     {
                         if (i != 0 || j != 0)
-                            result.Append(serapator);
+                            result.Append(separator);
                         result.Append(formattedAttribute);
                     }
                 }
@@ -111,6 +110,6 @@ namespace Nop.Services.Customers
             return result.ToString();
         }
 
-        #endregion
+#endregion
     }
 }
