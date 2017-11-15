@@ -28,6 +28,7 @@ namespace Nop.Services.Catalog
     public partial class ProductService : IProductService
     {
         #region Constants
+
         /// <summary>
         /// Key for caching
         /// </summary>
@@ -39,6 +40,7 @@ namespace Nop.Services.Catalog
         /// Key pattern to clear cache
         /// </summary>
         private const string PRODUCTS_PATTERN_KEY = "Nop.product.";
+
         #endregion
 
         #region Fields
@@ -166,6 +168,42 @@ namespace Nop.Services.Catalog
 
         #region Utilities
 
+        /// <summary>
+        /// Search products using LINQ
+        /// </summary>
+        /// <param name="filterableSpecificationAttributeOptionIds">The specification attribute option identifiers applied to loaded products (all pages)</param>
+        /// <param name="loadFilterableSpecificationAttributeOptionIds">A value indicating whether we should load the specification attribute option identifiers applied to loaded products (all pages)</param>
+        /// <param name="pageIndex">Page index</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="categoryIds">Category identifiers</param>
+        /// <param name="manufacturerId">Manufacturer identifier; 0 to load all records</param>
+        /// <param name="storeId">Store identifier; 0 to load all records</param>
+        /// <param name="vendorId">Vendor identifier; 0 to load all records</param>
+        /// <param name="warehouseId">Warehouse identifier; 0 to load all records</param>
+        /// <param name="productType">Product type; 0 to load all records</param>
+        /// <param name="visibleIndividuallyOnly">A values indicating whether to load only products marked as "visible individually"; "false" to load all records; "true" to load "visible individually" only</param>
+        /// <param name="markedAsNewOnly">A values indicating whether to load only products marked as "new"; "false" to load all records; "true" to load "marked as new" only</param>
+        /// <param name="featuredProducts">A value indicating whether loaded products are marked as featured (relates only to categories and manufacturers). 0 to load featured products only, 1 to load not featured products only, null to load all products</param>
+        /// <param name="priceMin">Minimum price; null to load all records</param>
+        /// <param name="priceMax">Maximum price; null to load all records</param>
+        /// <param name="productTagId">Product tag identifier; 0 to load all records</param>
+        /// <param name="keywords">Keywords</param>
+        /// <param name="searchDescriptions">A value indicating whether to search by a specified "keyword" in product descriptions</param>
+        /// <param name="searchManufacturerPartNumber">A value indicating whether to search by a specified "keyword" in manufacturer part number</param>
+        /// <param name="searchSku">A value indicating whether to search by a specified "keyword" in product SKU</param>
+        /// <param name="searchProductTags">A value indicating whether to search by a specified "keyword" in product tags</param>
+        /// <param name="searchLocalizedValue">A value indicating whether to search in localizable values</param>
+        /// <param name="allowedCustomerRolesIds">A list of allowed customer role identifiers (ACL)</param>
+        /// <param name="languageId">Language identifier (search for text searching)</param>
+        /// <param name="filteredSpecs">Filtered product specification identifiers</param>
+        /// <param name="orderBy">Order by</param>
+        /// <param name="showHidden">A value indicating whether to show hidden records</param>
+        /// <param name="overridePublished">
+        /// null - process "Published" property according to "showHidden" parameter
+        /// true - load only "Published" products
+        /// false - load only "Unpublished" products
+        /// </param>
+        /// <returns>Products</returns>
         protected virtual IPagedList<Product> SearchProductsUseLinq(ref IList<int> filterableSpecificationAttributeOptionIds,
             bool loadFilterableSpecificationAttributeOptionIds, int pageIndex, int pageSize, IList<int> categoryIds,
             int manufacturerId, int storeId, int vendorId, int warehouseId, ProductType? productType,
@@ -234,7 +272,7 @@ namespace Nop.Services.Catalog
             }
 
             //searching by keyword
-            if (!String.IsNullOrWhiteSpace(keywords))
+            if (!string.IsNullOrWhiteSpace(keywords))
             {
                 query = from p in query
                         join lp in _localizedPropertyRepository.Table on p.Id equals lp.EntityId into p_lp
@@ -435,6 +473,42 @@ namespace Nop.Services.Catalog
             return products;
         }
 
+        /// <summary>
+        /// Search products using a stored procedure
+        /// </summary>
+        /// <param name="filterableSpecificationAttributeOptionIds">The specification attribute option identifiers applied to loaded products (all pages)</param>
+        /// <param name="loadFilterableSpecificationAttributeOptionIds">A value indicating whether we should load the specification attribute option identifiers applied to loaded products (all pages)</param>
+        /// <param name="pageIndex">Page index</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="categoryIds">Category identifiers</param>
+        /// <param name="manufacturerId">Manufacturer identifier; 0 to load all records</param>
+        /// <param name="storeId">Store identifier; 0 to load all records</param>
+        /// <param name="vendorId">Vendor identifier; 0 to load all records</param>
+        /// <param name="warehouseId">Warehouse identifier; 0 to load all records</param>
+        /// <param name="productType">Product type; 0 to load all records</param>
+        /// <param name="visibleIndividuallyOnly">A values indicating whether to load only products marked as "visible individually"; "false" to load all records; "true" to load "visible individually" only</param>
+        /// <param name="markedAsNewOnly">A values indicating whether to load only products marked as "new"; "false" to load all records; "true" to load "marked as new" only</param>
+        /// <param name="featuredProducts">A value indicating whether loaded products are marked as featured (relates only to categories and manufacturers). 0 to load featured products only, 1 to load not featured products only, null to load all products</param>
+        /// <param name="priceMin">Minimum price; null to load all records</param>
+        /// <param name="priceMax">Maximum price; null to load all records</param>
+        /// <param name="productTagId">Product tag identifier; 0 to load all records</param>
+        /// <param name="keywords">Keywords</param>
+        /// <param name="searchDescriptions">A value indicating whether to search by a specified "keyword" in product descriptions</param>
+        /// <param name="searchManufacturerPartNumber">A value indicating whether to search by a specified "keyword" in manufacturer part number</param>
+        /// <param name="searchSku">A value indicating whether to search by a specified "keyword" in product SKU</param>
+        /// <param name="searchProductTags">A value indicating whether to search by a specified "keyword" in product tags</param>
+        /// <param name="searchLocalizedValue">A value indicating whether to search in localizable values</param>
+        /// <param name="allowedCustomerRolesIds">A list of allowed customer role identifiers (ACL)</param>
+        /// <param name="languageId">Language identifier (search for text searching)</param>
+        /// <param name="filteredSpecs">Filtered product specification identifiers</param>
+        /// <param name="orderBy">Order by</param>
+        /// <param name="showHidden">A value indicating whether to show hidden records</param>
+        /// <param name="overridePublished">
+        /// null - process "Published" property according to "showHidden" parameter
+        /// true - load only "Published" products
+        /// false - load only "Unpublished" products
+        /// </param>
+        /// <returns>Products</returns>
         protected virtual IPagedList<Product> SearchProductsUseStoredProcedure(ref IList<int> filterableSpecificationAttributeOptionIds,
             bool loadFilterableSpecificationAttributeOptionIds, int pageIndex, int pageSize, IList<int> categoryIds,
             int manufacturerId, int storeId, int vendorId, int warehouseId, ProductType? productType,
@@ -444,13 +518,13 @@ namespace Nop.Services.Catalog
             IList<int> filteredSpecs, ProductSortingEnum orderBy, bool showHidden, bool? overridePublished)
         {
             //pass category identifiers as comma-delimited string
-            string commaSeparatedCategoryIds = categoryIds == null ? "" : string.Join(",", categoryIds);
+            var commaSeparatedCategoryIds = categoryIds == null ? "" : string.Join(",", categoryIds);
 
             //pass customer role identifiers as comma-delimited string
-            string commaSeparatedAllowedCustomerRoleIds = string.Join(",", allowedCustomerRolesIds);
+            var commaSeparatedAllowedCustomerRoleIds = string.Join(",", allowedCustomerRolesIds);
 
             //pass specification identifiers as comma-delimited string
-            string commaSeparatedSpecIds = "";
+            var commaSeparatedSpecIds = "";
             if (filteredSpecs != null)
             {
                 ((List<int>)filteredSpecs).Sort();
@@ -468,8 +542,8 @@ namespace Nop.Services.Catalog
             var pVendorId = _dataProvider.GetInt32Parameter("VendorId", vendorId);
             var pWarehouseId = _dataProvider.GetInt32Parameter("WarehouseId", warehouseId);
             var pProductTypeId = _dataProvider.GetInt32Parameter("ProductTypeId", (int?)productType);
-            var pVisibleIndividuallyOnly = _dataProvider.GetInt32Parameter("VisibleIndividuallyOnly", visibleIndividuallyOnly);
-            var pMarkedAsNewOnly = _dataProvider.GetInt32Parameter("MarkedAsNewOnly", markedAsNewOnly);
+            var pVisibleIndividuallyOnly = _dataProvider.GetBooleanParameter("VisibleIndividuallyOnly", visibleIndividuallyOnly);
+            var pMarkedAsNewOnly = _dataProvider.GetBooleanParameter("MarkedAsNewOnly", markedAsNewOnly);
             var pProductTagId = _dataProvider.GetInt32Parameter("ProductTagId", productTagId);
             var pFeaturedProducts = _dataProvider.GetBooleanParameter("FeaturedProducts", featuredProducts);
             var pPriceMin = _dataProvider.GetDecimalParameter("PriceMin", priceMin);
@@ -530,7 +604,7 @@ namespace Nop.Services.Catalog
                 pFilterableSpecificationAttributeOptionIds,
                 pTotalRecords);
             //get filterable specification attribute option identifier
-            string filterableSpecificationAttributeOptionIdsStr =
+            var filterableSpecificationAttributeOptionIdsStr =
                 pFilterableSpecificationAttributeOptionIds.Value != DBNull.Value
                     ? (string) pFilterableSpecificationAttributeOptionIds.Value
                     : "";
@@ -544,7 +618,7 @@ namespace Nop.Services.Catalog
                     .ToList();
             }
             //return products
-            int totalRecords = pTotalRecords.Value != DBNull.Value ? Convert.ToInt32(pTotalRecords.Value) : 0;
+            var totalRecords = pTotalRecords.Value != DBNull.Value ? Convert.ToInt32(pTotalRecords.Value) : 0;
             return new PagedList<Product>(products, pageIndex, pageSize, totalRecords);
         }
 
@@ -621,7 +695,7 @@ namespace Nop.Services.Catalog
             if (productId == 0)
                 return null;
             
-            string key = string.Format(PRODUCTS_BY_ID_KEY, productId);
+            var key = string.Format(PRODUCTS_BY_ID_KEY, productId);
             return _cacheManager.Get(key, () => _productRepository.GetById(productId));
         }
 
@@ -641,7 +715,7 @@ namespace Nop.Services.Catalog
             var products = query.ToList();
             //sort by passed identifiers
             var sortedProducts = new List<Product>();
-            foreach (int id in productIds)
+            foreach (var id in productIds)
             {
                 var product = products.Find(x => x.Id == id);
                 if (product != null)
@@ -688,6 +762,10 @@ namespace Nop.Services.Catalog
             _eventPublisher.EntityUpdated(product);
         }
 
+        /// <summary>
+        /// Update products
+        /// </summary>
+        /// <param name="products">Products</param>
         public virtual void UpdateProducts(IList<Product> products)
         {
             if (products == null)
@@ -815,7 +893,7 @@ namespace Nop.Services.Catalog
             bool showHidden = false,
             bool? overridePublished = null)
         {
-            return SearchProducts(out IList<int> filterableSpecificationAttributeOptionIds, false,
+            return SearchProducts(out IList<int> _, false,
                 pageIndex, pageSize, categoryIds, manufacturerId,
                 storeId, vendorId, warehouseId,
                 productType, visibleIndividuallyOnly, markedAsNewOnly, featuredProducts,
@@ -889,7 +967,7 @@ namespace Nop.Services.Catalog
             filterableSpecificationAttributeOptionIds = new List<int>();
 
             //search by keyword
-            bool searchLocalizedValue = false;
+            var searchLocalizedValue = false;
             if (languageId > 0)
             {
                 if (showHidden)
@@ -1005,10 +1083,10 @@ namespace Nop.Services.Catalog
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            int approvedRatingSum = 0;
-            int notApprovedRatingSum = 0; 
-            int approvedTotalReviews = 0;
-            int notApprovedTotalReviews = 0;
+            var approvedRatingSum = 0;
+            var notApprovedRatingSum = 0; 
+            var approvedTotalReviews = 0;
+            var notApprovedTotalReviews = 0;
             var reviews = product.ProductReviews;
             foreach (var pr in reviews)
             {
@@ -1087,7 +1165,7 @@ namespace Nop.Services.Catalog
         /// <returns>Product</returns>
         public virtual Product GetProductBySku(string sku)
         {
-            if (String.IsNullOrEmpty(sku))
+            if (string.IsNullOrEmpty(sku))
                 return null;
 
             sku = sku.Trim();
@@ -1146,7 +1224,6 @@ namespace Nop.Services.Catalog
             product.HasDiscountsApplied = product.AppliedDiscounts.Any();
             UpdateProduct(product);
         }
-
 
         /// <summary>
         /// Gets number of products by vendor identifier
@@ -1271,7 +1348,6 @@ namespace Nop.Services.Catalog
                     }
                 }
             }
-
 
             //bundled products
             var attributeValues = _productAttributeParser.ParseProductAttributeValues(attributesXml);
@@ -1668,7 +1744,7 @@ namespace Nop.Services.Catalog
             var cartProductIds = new List<int>();
             foreach (var sci in cart)
             {
-                int prodId = sci.ProductId;
+                var prodId = sci.ProductId;
                 if (!cartProductIds.Contains(prodId))
                     cartProductIds.Add(prodId);
             }
@@ -1695,6 +1771,7 @@ namespace Nop.Services.Catalog
             }
             return result;
         }
+
         #endregion
         
         #region Tier prices
@@ -1883,7 +1960,7 @@ namespace Nop.Services.Catalog
                 query = query.Where(pr => fromUtc.Value <= pr.CreatedOnUtc);
             if (toUtc.HasValue)
                 query = query.Where(pr => toUtc.Value >= pr.CreatedOnUtc);
-            if (!String.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(message))
                 query = query.Where(pr => pr.Title.Contains(message) || pr.ReviewText.Contains(message));
             if (storeId > 0)
                 query = query.Where(pr => pr.StoreId == storeId);
@@ -1928,7 +2005,7 @@ namespace Nop.Services.Catalog
             var productReviews = query.ToList();
             //sort by passed identifiers
             var sortedProductReviews = new List<ProductReview>();
-            foreach (int id in productReviewIds)
+            foreach (var id in productReviewIds)
             {
                 var productReview = productReviews.Find(x => x.Id == id);
                 if (productReview != null)

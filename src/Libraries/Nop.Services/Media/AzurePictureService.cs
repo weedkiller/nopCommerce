@@ -41,8 +41,7 @@ namespace Nop.Services.Media
 
         #region Fields
 
-        private static CloudBlobContainer _container = null;
-
+        private static CloudBlobContainer _container;
         private readonly IStaticCacheManager _cacheManager;
         private readonly MediaSettings _mediaSettings;
         private readonly NopConfig _config;
@@ -51,6 +50,21 @@ namespace Nop.Services.Media
 
         #region Ctor
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="pictureRepository">Picture repository</param>
+        /// <param name="productPictureRepository">Product picture repository</param>
+        /// <param name="settingService">Setting service</param>
+        /// <param name="webHelper">Web helper</param>
+        /// <param name="logger">Logger</param>
+        /// <param name="dbContext">Database context</param>
+        /// <param name="eventPublisher">Event publisher</param>
+        /// <param name="cacheManager">Cache manager</param>
+        /// <param name="mediaSettings">Media settings</param>
+        /// <param name="config">Config</param>
+        /// <param name="dataProvider">Data provider</param>
+        /// <param name="hostingEnvironment">Hosting environment</param>
         public AzurePictureService(IRepository<Picture> pictureRepository,
             IRepository<ProductPicture> productPictureRepository,
             ISettingService settingService,
@@ -94,6 +108,9 @@ namespace Nop.Services.Media
 
         #region Utilities
 
+        /// <summary>
+        /// Create cloud blob container
+        /// </summary>
         protected virtual async void CreateCloudBlobContainer()
         {
             var storageAccount = CloudStorageAccount.Parse(_config.AzureBlobStorageConnectionString);
@@ -173,7 +190,7 @@ namespace Nop.Services.Media
         protected virtual async Task DeletePictureThumbsAsync(Picture picture)
         {
             //create a string containing the blob name prefix
-            var prefix = $"{picture.Id.ToString("0000000")}";
+            var prefix = $"{picture.Id:0000000}";
 
             BlobContinuationToken continuationToken = null;
             do

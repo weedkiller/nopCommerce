@@ -34,14 +34,13 @@ namespace Nop.Web.Areas.Admin.Models.Settings
 
         public int ActiveStoreScopeConfiguration { get; set; }
 
-
         #region Nested classes
 
         public partial class StoreInformationSettingsModel : BaseNopModel
         {
             public StoreInformationSettingsModel()
             {
-                this.AvailableStoreThemes = new List<ThemeConfigurationModel>();
+                this.AvailableStoreThemes = new List<ThemeModel>();
             }
 
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.StoreClosed")]
@@ -51,7 +50,7 @@ namespace Nop.Web.Areas.Admin.Models.Settings
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.DefaultStoreTheme")]
             public string DefaultStoreTheme { get; set; }
             public bool DefaultStoreTheme_OverrideForStore { get; set; }
-            public IList<ThemeConfigurationModel> AvailableStoreThemes { get; set; }
+            public IList<ThemeModel> AvailableStoreThemes { get; set; }
 
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.AllowCustomerToSelectTheme")]
             public bool AllowCustomerToSelectTheme { get; set; }
@@ -61,7 +60,6 @@ namespace Nop.Web.Areas.Admin.Models.Settings
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.Logo")]
             public int LogoPictureId { get; set; }
             public bool LogoPictureId_OverrideForStore { get; set; }
-            
 
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.DisplayEuCookieLawWarning")]
             public bool DisplayEuCookieLawWarning { get; set; }
@@ -117,10 +115,10 @@ namespace Nop.Web.Areas.Admin.Models.Settings
 
             #region Nested classes
 
-            public partial class ThemeConfigurationModel
+            public partial class ThemeModel
             {
                 public string SystemName { get; set; }
-                public string Title { get; set; }
+                public string FriendlyName { get; set; }
                 public string PreviewImageUrl { get; set; }
                 public string PreviewText { get; set; }
                 public bool SupportRtl { get; set; }
@@ -296,7 +294,6 @@ namespace Nop.Web.Areas.Admin.Models.Settings
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.InvoiceFooterTextColumn2")]
             public string InvoiceFooterTextColumn2 { get; set; }
             public bool InvoiceFooterTextColumn2_OverrideForStore { get; set; }
-
         }
 
         public partial class LocalizationSettingsModel : BaseNopModel
@@ -362,6 +359,7 @@ namespace Nop.Web.Areas.Admin.Models.Settings
             public bool UseRichEditorInMessageTemplates { get; set; }
             public bool UseRichEditorInMessageTemplates_OverrideForStore { get; set; }
         }
+
         #endregion
     }
 }

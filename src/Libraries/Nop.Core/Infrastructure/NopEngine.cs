@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Configuration;
-using Nop.Core.Extensions;
 using Nop.Core.Infrastructure.DependencyManagement;
 using Nop.Core.Infrastructure.Mapper;
 using Nop.Core.Plugins;
@@ -35,6 +34,10 @@ namespace Nop.Core.Infrastructure
 
         #region Utilities
 
+        /// <summary>
+        /// Get IServiceProvider
+        /// </summary>
+        /// <returns>IServiceProvider</returns>
         protected IServiceProvider GetServiceProvider()
         {
             var accessor = ServiceProvider.GetService<IHttpContextAccessor>();

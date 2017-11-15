@@ -116,6 +116,10 @@ namespace Nop.Services.Localization
 
         #region Utilities
 
+        /// <summary>
+        /// Insert resources
+        /// </summary>
+        /// <param name="resources">Resources</param>
         protected virtual void InsertLocaleStringResources(IList<LocaleStringResource> resources)
         {
             if (resources == null)
@@ -134,6 +138,10 @@ namespace Nop.Services.Localization
             }
         }
 
+        /// <summary>
+        /// Update resources
+        /// </summary>
+        /// <param name="resources">Resources</param>
         protected virtual void UpdateLocaleStringResources(IList<LocaleStringResource> resources)
         {
             if (resources == null)
@@ -358,7 +366,7 @@ namespace Nop.Services.Localization
         public virtual string GetResource(string resourceKey, int languageId,
             bool logIfNotFound = true, string defaultValue = "", bool returnEmptyIfNotFound = false)
         {
-            string result = string.Empty;
+            var result = string.Empty;
             if (resourceKey == null)
                 resourceKey = string.Empty;
             resourceKey = resourceKey.Trim().ToLowerInvariant();
@@ -374,8 +382,8 @@ namespace Nop.Services.Localization
             else
             {
                 //gradual loading
-                string key = string.Format(LOCALSTRINGRESOURCES_BY_RESOURCENAME_KEY, languageId, resourceKey);
-                string lsr = _cacheManager.Get(key, () =>
+                var key = string.Format(LOCALSTRINGRESOURCES_BY_RESOURCENAME_KEY, languageId, resourceKey);
+                var lsr = _cacheManager.Get(key, () =>
                 {
                     var query = from l in _lsrRepository.Table
                                 where l.ResourceName == resourceKey
@@ -387,12 +395,12 @@ namespace Nop.Services.Localization
                 if (lsr != null) 
                     result = lsr;
             }
-            if (String.IsNullOrEmpty(result))
+            if (string.IsNullOrEmpty(result))
             {
                 if (logIfNotFound)
                     _logger.Warning($"Resource string ({resourceKey}) is not found. Language ID = {languageId}");
                 
-                if (!String.IsNullOrEmpty(defaultValue))
+                if (!string.IsNullOrEmpty(defaultValue))
                 {
                     result = defaultValue;
                 }
@@ -422,7 +430,6 @@ namespace Nop.Services.Localization
             xmlWriter.WriteAttributeString("Name", language.Name);
             xmlWriter.WriteAttributeString("SupportedVersion", NopVersion.CurrentVersion);
 
-
             var resources = GetAllResources(language.Id);
             foreach (var resource in resources)
             {
@@ -449,7 +456,7 @@ namespace Nop.Services.Localization
             if (language == null)
                 throw new ArgumentNullException(nameof(language));
 
-            if (String.IsNullOrEmpty(xml))
+            if (string.IsNullOrEmpty(xml))
                 return;
             if (_commonSettings.UseStoredProceduresIfSupported && _dataProvider.StoredProceduredSupported)
             {
@@ -500,13 +507,13 @@ namespace Nop.Services.Localization
 
                 foreach (XmlNode node in nodes)
                 {
-                    string name = node.Attributes["Name"].InnerText.Trim();
-                    string value = "";
+                    var name = node.Attributes["Name"].InnerText.Trim();
+                    var value = "";
                     var valueNode = node.SelectSingleNode("Value");
                     if (valueNode != null)
                         value = valueNode.InnerText;
 
-                    if (String.IsNullOrEmpty(name))
+                    if (string.IsNullOrEmpty(name))
                         continue;
 
                     //do not use "Insert"/"Update" methods because they clear cache

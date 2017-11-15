@@ -1,4 +1,5 @@
 ﻿@using System.Text.Encodings.Web
+@inject Nop.Services.Plugins.IUploadService uploadService
 @model PluginListModel
 
 @{
@@ -107,7 +108,7 @@
                     <div class="panel-body">
                         <div id="plugins-grid"></div>
 
-                        <script>
+                        <script type="text/javascript">
                             $(document).ready(function () {
                                 $("#plugins-grid").kendoGrid({
                                     dataSource: {
@@ -207,12 +208,12 @@
                                         </div>
                                         <div class="modal-footer">
                                             <span class="btn btn-default" data-dismiss="modal">@T("Admin.Common.NoCancel")</span>
-                                            <button type="submit" class="btn btn-primary pull-right">@T("Delete")</button>
+                                            <button type="submit" class="btn btn-primary pull-right">@T("Admin.Common.Delete")</button>
                                         </div>
                                     </div>                                    
                             </div>
                         </div>
-                        <script>
+                        <script type="text/javascript">
                             function onDataBound(e) {
                                 $('button[name^="delete-plugin-link-"]')
                                     .attr("data-toggle", "modal")
@@ -284,18 +285,21 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="uploadplugin-window-title">@T("Admin.Configuration.Plugins.Upload")</h4>
             </div>
-            <form asp-controller="Plugin" asp-action="UploadPlugin" method="post" enctype="multipart/form-data">
+            <form asp-controller="Plugin" asp-action="UploadPluginsAndThemes" method="post" enctype="multipart/form-data">
                 <div class="form-horizontal">
                     <div class="modal-body">
                         <ul class="common-list">
                             <li>
-                                <em>@T("Admin.Configuration.Plugins.Upload.Hint1")</em>
+                                @T("Admin.Configuration.Plugins.Upload.Hint1")
                             </li>
                             <li>
-                                <em>@T("Admin.Configuration.Plugins.Upload.Hint2")</em>
+                                @string.Format(T("Admin.Configuration.Plugins.Upload.Hint2").Text, uploadService.UploadedItemsFileName)
                             </li>
                             <li>
                                 <em>@T("Admin.Configuration.Plugins.Upload.Hint3")</em>
+                            </li>
+                            <li>
+                                <em>@T("Admin.Configuration.Plugins.Upload.Hint4")</em>
                             </li>
                         </ul>
                         <div class="form-group">

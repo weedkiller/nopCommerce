@@ -76,6 +76,28 @@ namespace Nop.Services.Customers
 
         #region Ctor
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="cacheManager">Cache manager</param>
+        /// <param name="customerRepository">Customer repository</param>
+        /// <param name="customerPasswordRepository">Customer password repository</param>
+        /// <param name="customerRoleRepository">Customer role repository</param>
+        /// <param name="gaRepository">Generic attribute repository</param>
+        /// <param name="orderRepository">Order repository</param>
+        /// <param name="forumPostRepository">Forum post repository</param>
+        /// <param name="forumTopicRepository">Forum topic repository</param>
+        /// <param name="blogCommentRepository">Blog comment repository</param>
+        /// <param name="newsCommentRepository">News comment repository</param>
+        /// <param name="pollVotingRecordRepository">Poll voting record repository</param>
+        /// <param name="productReviewRepository">Product review repository</param>
+        /// <param name="productReviewHelpfulnessRepository">Product review helpfulness repository</param>
+        /// <param name="genericAttributeService">Generic attribute service</param>
+        /// <param name="dataProvider">Data provider</param>
+        /// <param name="dbContext">DB context</param>
+        /// <param name="eventPublisher">Event publisher</param>
+        /// <param name="customerSettings">Customer settings</param>
+        /// <param name="commonSettings">Common settings</param>
         public CustomerService(ICacheManager cacheManager,
             IRepository<Customer> customerRepository,
             IRepository<CustomerPassword> customerPasswordRepository,
@@ -121,6 +143,13 @@ namespace Nop.Services.Customers
 
         #region Utilities
 
+        /// <summary>
+        /// Delete guest customers using LINQ
+        /// </summary>
+        /// <param name="createdFromUtc">Created from</param>
+        /// <param name="createdToUtc">Created to</param>
+        /// <param name="onlyWithoutShoppingCart">Delete only without shopping cart</param>
+        /// <returns>Number of delete customers</returns>
         protected virtual int DeleteGuestCustomersUseLinq(DateTime? createdFromUtc, DateTime? createdToUtc, bool onlyWithoutShoppingCart)
         {
             var guestRole = GetCustomerRoleBySystemName(SystemCustomerRoleNames.Guests);
@@ -195,7 +224,7 @@ namespace Nop.Services.Customers
             query = query.OrderBy(c => c.Id);
             var customers = query.ToList();
 
-            int totalRecordsDeleted = 0;
+            var totalRecordsDeleted = 0;
             foreach (var c in customers)
             {
                 try
@@ -216,6 +245,13 @@ namespace Nop.Services.Customers
             return totalRecordsDeleted;
         }
 
+        /// <summary>
+        /// Delete guest customers using a stored procedure
+        /// </summary>
+        /// <param name="createdFromUtc">Created from</param>
+        /// <param name="createdToUtc">Created to</param>
+        /// <param name="onlyWithoutShoppingCart">Delete only without shopping cart</param>
+        /// <returns>Number of delete customers</returns>
         protected virtual int DeleteGuestCustomersUseStoredProcedure(DateTime? createdFromUtc, DateTime? createdToUtc, bool onlyWithoutShoppingCart)
         {
             //prepare parameters
@@ -233,7 +269,7 @@ namespace Nop.Services.Customers
                 pCreatedToUtc,
                 pTotalRecordsDeleted);
 
-            int totalRecordsDeleted = pTotalRecordsDeleted.Value != DBNull.Value ? Convert.ToInt32(pTotalRecordsDeleted.Value) : 0;
+            var totalRecordsDeleted = pTotalRecordsDeleted.Value != DBNull.Value ? Convert.ToInt32(pTotalRecordsDeleted.Value) : 0;
             return totalRecordsDeleted;
         }
         
@@ -287,11 +323,11 @@ namespace Nop.Services.Customers
             query = query.Where(c => !c.Deleted);
             if (customerRoleIds != null && customerRoleIds.Length > 0)
                 query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
-            if (!String.IsNullOrWhiteSpace(email))
+            if (!string.IsNullOrWhiteSpace(email))
                 query = query.Where(c => c.Email.Contains(email));
-            if (!String.IsNullOrWhiteSpace(username))
+            if (!string.IsNullOrWhiteSpace(username))
                 query = query.Where(c => c.Username.Contains(username));
-            if (!String.IsNullOrWhiteSpace(firstName))
+            if (!string.IsNullOrWhiteSpace(firstName))
             {
                 query = query
                     .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
@@ -300,7 +336,7 @@ namespace Nop.Services.Customers
                         z.Attribute.Value.Contains(firstName)))
                     .Select(z => z.Customer);
             }
-            if (!String.IsNullOrWhiteSpace(lastName))
+            if (!string.IsNullOrWhiteSpace(lastName))
             {
                 query = query
                     .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
@@ -315,7 +351,7 @@ namespace Nop.Services.Customers
             if (dayOfBirth > 0 && monthOfBirth > 0)
             {
                 //both are specified
-                string dateOfBirthStr = monthOfBirth.ToString("00", CultureInfo.InvariantCulture) + "-" + dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
+                var dateOfBirthStr = monthOfBirth.ToString("00", CultureInfo.InvariantCulture) + "-" + dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
                 //EndsWith is not supported by SQL Server Compact
                 //so let's use the following workaround http://social.msdn.microsoft.com/Forums/is/sqlce/thread/0f810be1-2132-4c59-b9ae-8f7013c0cc00
                 
@@ -332,7 +368,7 @@ namespace Nop.Services.Customers
             else if (dayOfBirth > 0)
             {
                 //only day is specified
-                string dateOfBirthStr = dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
+                var dateOfBirthStr = dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
                 //EndsWith is not supported by SQL Server Compact
                 //so let's use the following workaround http://social.msdn.microsoft.com/Forums/is/sqlce/thread/0f810be1-2132-4c59-b9ae-8f7013c0cc00
                 
@@ -349,7 +385,7 @@ namespace Nop.Services.Customers
             else if (monthOfBirth > 0)
             {
                 //only month is specified
-                string dateOfBirthStr = "-" + monthOfBirth.ToString("00", CultureInfo.InvariantCulture) + "-";
+                var dateOfBirthStr = "-" + monthOfBirth.ToString("00", CultureInfo.InvariantCulture) + "-";
                 query = query
                     .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
                     .Where((z => z.Attribute.KeyGroup == "Customer" &&
@@ -358,7 +394,7 @@ namespace Nop.Services.Customers
                     .Select(z => z.Customer);
             }
             //search by company
-            if (!String.IsNullOrWhiteSpace(company))
+            if (!string.IsNullOrWhiteSpace(company))
             {
                 query = query
                     .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
@@ -368,7 +404,7 @@ namespace Nop.Services.Customers
                     .Select(z => z.Customer);
             }
             //search by phone
-            if (!String.IsNullOrWhiteSpace(phone))
+            if (!string.IsNullOrWhiteSpace(phone))
             {
                 query = query
                     .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
@@ -378,7 +414,7 @@ namespace Nop.Services.Customers
                     .Select(z => z.Customer);
             }
             //search by zip
-            if (!String.IsNullOrWhiteSpace(zipPostalCode))
+            if (!string.IsNullOrWhiteSpace(zipPostalCode))
             {
                 query = query
                     .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
@@ -389,7 +425,7 @@ namespace Nop.Services.Customers
             }
 
             //search by IpAddress
-            if (!String.IsNullOrWhiteSpace(ipAddress) && CommonHelper.IsValidIpAddress(ipAddress))
+            if (!string.IsNullOrWhiteSpace(ipAddress) && CommonHelper.IsValidIpAddress(ipAddress))
             {
                     query = query.Where(w => w.LastIpAddress == ipAddress);
             }
@@ -449,9 +485,9 @@ namespace Nop.Services.Customers
 
             if (_customerSettings.SuffixDeletedCustomers)
             {
-                if (!String.IsNullOrEmpty(customer.Email))
+                if (!string.IsNullOrEmpty(customer.Email))
                     customer.Email += "-DELETED";
-                if (!String.IsNullOrEmpty(customer.Username))
+                if (!string.IsNullOrEmpty(customer.Username))
                     customer.Username += "-DELETED";
             }
 
@@ -490,7 +526,7 @@ namespace Nop.Services.Customers
             var customers = query.ToList();
             //sort by passed identifiers
             var sortedCustomers = new List<Customer>();
-            foreach (int id in customerIds)
+            foreach (var id in customerIds)
             {
                 var customer = customers.Find(x => x.Id == id);
                 if (customer != null)
@@ -744,10 +780,10 @@ namespace Nop.Services.Customers
         /// <returns>Customer role</returns>
         public virtual CustomerRole GetCustomerRoleBySystemName(string systemName)
         {
-            if (String.IsNullOrWhiteSpace(systemName))
+            if (string.IsNullOrWhiteSpace(systemName))
                 return null;
 
-            string key = string.Format(CUSTOMERROLES_BY_SYSTEMNAME_KEY, systemName);
+            var key = string.Format(CUSTOMERROLES_BY_SYSTEMNAME_KEY, systemName);
             return _cacheManager.Get(key, () =>
             {
                 var query = from cr in _customerRoleRepository.Table
@@ -766,7 +802,7 @@ namespace Nop.Services.Customers
         /// <returns>Customer roles</returns>
         public virtual IList<CustomerRole> GetAllCustomerRoles(bool showHidden = false)
         {
-            string key = string.Format(CUSTOMERROLES_ALL_KEY, showHidden);
+            var key = string.Format(CUSTOMERROLES_ALL_KEY, showHidden);
             return _cacheManager.Get(key, () =>
             {
                 var query = from cr in _customerRoleRepository.Table
